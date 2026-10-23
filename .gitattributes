@@ -1,0 +1,15 @@
+* text=auto
+*.tex text eol=lf
+*.md text eol=lf
+*.csv text eol=lf
+*.pdf binary
+*.PrjPcb text
+*.PrjPCB text
+*.SchDoc binary
+*.PcbDoc binary
+*.SchLib binary
+*.PcbLib binary
+*.IntLib binary
+*.STEP binary
+*.step binary
+*.xlsx binary

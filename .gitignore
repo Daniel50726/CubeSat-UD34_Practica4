@@ -1,0 +1,39 @@
+# Archivos locales de trabajo
+/lab004_2598575_20262.pdf
+/Diseño_Lab3.pdf
+/tmp/
+/informe/main.tex
+/informe/README.md
+/informe/cambio_*.txt
+/informe/informe_revisado_v03.txt
+
+# Compilacion de LaTeX; los PDF de entrega se guardan en entregables/
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+/informe/latex/*.pdf
+
+# Historial y temporales de Altium; conservar proyectos y librerias nativos
+**/History/
+**/__Previews/
+*.PrjPCBStructure
+*.PrjPcbStructure
+*.SchDocPreview
+*.PcbDocPreview
+*.SchDoc~
+*.PcbDoc~
+*.bak
+*.tmp
+~$*
+
+# Archivos del sistema y configuracion local
+Thumbs.db
+Desktop.ini
+.DS_Store
+.env
+.env.*
+!.env.example

@@ -1,0 +1,437 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,longtable,array,tabularx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\hypersetup{colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!45!black,citecolor=blue!45!black}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{CubeSat UD34 --- Práctica 4}
+\rhead{Central y comunicaciones}
+\cfoot{\thepage}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlist[itemize]{noitemsep,topsep=3pt}
+\renewcommand{\arraystretch}{1.18}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\begin{document}
+\begin{titlepage}
+\centering
+{\large Universidad de Antioquia\par}
+{Departamento de Ingeniería Electrónica y Telecomunicaciones\par}
+\vspace{1.5cm}
+{\Large Laboratorio de Diseño de Productos Electrónicos\par}
+\vspace{0.6cm}
+{\huge\bfseries Práctica 4\par}
+\vspace{0.4cm}
+{\LARGE Diseño electrónico y captura esquemática\par}
+\vspace{0.8cm}
+{\Large PCB integrada central y de comunicaciones del CubeSat UD34\par}
+\vfill
+\textbf{Integrantes}\par
+Daniel Felipe Yépez Taimal\par
+Santiago Cáceres Vásquez\par
+\vspace{0.5cm}
+\textbf{Docente}\par
+Maria Katherine Plazas Olaya\par
+\vspace{0.6cm}
+Medellín, Colombia\par
+23 de octubre de 2026\par
+\vspace{0.5cm}
+Versión 0.3\par
+\end{titlepage}
+
+\tableofcontents
+\newpage
+\section{Introducción}
+El CubeSat UD34 se plantea como un sistema de formato 1U para adquirir imágenes multiespectrales de regiones cafeteras y transmitir información hacia una estación terrestre en Medellín. La práctica 3 estableció una arquitectura centralizada: un computador de a bordo coordina adquisición, almacenamiento, supervisión, comunicaciones y funciones de control de actitud \cite{lab3}.
+
+La práctica 4 transforma esa arquitectura preliminar en un diseño electrónico detallado de la PCB asignada. Comprende especificaciones, componentes, dimensionamiento de circuitos, librerías, esquemáticos jerárquicos, restricciones, revisión eléctrica y costos. No exige implementar software de vuelo, enrutar la PCB ni generar archivos de fabricación \cite{guia4}.
+
+La PCB integra el computador de a bordo, el almacenamiento y el subsistema de comunicaciones. El informe documenta sus funciones, sus interfaces internas y externas y las condiciones que sustentan el diseño electrónico. La integración requiere un presupuesto conjunto de alimentación, espacio y datos, así como compatibilidad eléctrica entre procesamiento y radiofrecuencia.
+
+\section{Objetivos}
+\subsection{Objetivo general}
+Diseñar la PCB integrada central y de comunicaciones del CubeSat UD34, justificando la selección y el dimensionamiento de sus circuitos y verificando su correspondencia con los requisitos, las interfaces y las restricciones del sistema.
+\subsection{Objetivos específicos}
+\begin{itemize}
+\item Definir las funciones de procesamiento, almacenamiento y comunicación de la PCB y sus conexiones con los demás subsistemas.
+\item Revisar las especificaciones heredadas, justificar sus modificaciones y mantener la trazabilidad de las decisiones de diseño.
+\item Establecer las necesidades de interfaces, procesamiento, almacenamiento, comunicación, alimentación y espacio.
+\item Definir las interfaces eléctricas y la asignación de contactos de los conectores de la tarjeta.
+\item Seleccionar y dimensionar los componentes y circuitos de la tarjeta con fundamento en sus condiciones de operación.
+\item Capturar y verificar el esquemático jerárquico en Altium mediante símbolos y huellas validados.
+\item Documentar las restricciones eléctricas y de fabricación, y estimar el costo de componentes para los lotes establecidos en la guía.
+\item Registrar los cambios respecto de la práctica 3 y sus efectos sobre el sistema.
+\end{itemize}
+
+\section{Alcance y especificaciones de la tarjeta}
+\label{sec:punto1}
+
+\subsection{Alcance de la PCB integrada}
+La PCB comprende el computador de a bordo, sus memorias de trabajo y programa, el almacenamiento de misión, el transceptor, los circuitos de radiofrecuencia y los elementos auxiliares de alimentación, control y supervisión. Sus funciones son:
+\begin{enumerate}[label=\arabic*.]
+\item Coordinar los modos de espera, adquisición, almacenamiento, transmisión y recuperación mediante recursos de hardware disponibles para software futuro.
+\item Configurar la cámara y recibir sus datos a través de una interfaz compatible con el dispositivo seleccionado.
+\item Conservar imágenes, telemetría y eventos en almacenamiento no volátil.
+\item Gestionar la comunicación bidireccional con tierra mediante el transceptor y los circuitos de RF, intercambiando datos, comandos y estados con el computador de a bordo.
+\item Intercambiar telemetría y señales de control con la tarjeta de potencia.
+\item Proporcionar interfaces para sensores y controladores del sistema de actitud, cuyas etapas de potencia se consideran externas a esta PCB.
+\item Permitir programación y depuración del computador, así como reinicio y comprobación eléctrica de los bloques de la PCB.
+\end{enumerate}
+
+Los límites externos de la PCB corresponden a la tarjeta de potencia, la cámara, los dispositivos de actitud y la antena. El cargador de baterías, los paneles solares, el diseño interno de la cámara y las etapas de potencia de actuadores pertenecen a esos subsistemas externos. La PCB incluye la conexión hacia antena y los circuitos de RF que requiera la solución de comunicaciones. La ubicación de sensores locales y circuitos de supervisión se determina según las necesidades de medición y las interfaces disponibles.
+
+\subsection{Arquitectura funcional}
+Se mantiene un computador principal como coordinador. El almacenamiento y la cámara se conectan a él; comunicaciones se conecta mediante un bus digital interno y señales auxiliares. Potencia y actitud permanecen como bloques externos cuyas interfaces eléctricas deben especificarse.
+
+\begin{table}[htbp]
+\centering
+\caption{Ubicación de los bloques y relaciones funcionales principales.}
+\label{tab:arquitectura}
+\begin{tabularx}{\textwidth}{L{3.6cm}L{2.8cm}X}
+\toprule Bloque & Ubicación & Relación funcional \\
+\midrule
+Computador de a bordo & PCB integrada & Coordina los bloques internos y los dispositivos externos. \\
+Almacenamiento de misión & PCB integrada & Conserva los datos recibidos y los entrega al computador para su transmisión. \\
+Comunicaciones y RF & PCB integrada & Intercambia datos y comandos con el computador y conecta con la antena. \\
+Cámara y óptica & Externa a la PCB & Reciben configuración y entregan datos de imagen al computador. \\
+Potencia & Tarjeta externa & Suministra energía y proporciona telemetría y alertas. \\
+Actitud & Subsistema externo & Entrega mediciones y recibe comandos hacia sus controladores. \\
+Antena & Externa a la PCB & Interfaz electromagnética del enlace con tierra. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+La tabla distingue la ubicación física de los bloques de sus relaciones
+funcionales. Los protocolos, niveles eléctricos y conectores se definirán
+según los dispositivos seleccionados.
+
+\subsection{Trazabilidad de requisitos aplicables}
+La tabla conserva los identificadores de los requisitos de la práctica 3
+\cite{lab3}. Su contenido expresa la contribución de la PCB a cada
+requisito; no sustituye el enunciado original ni acredita su cumplimiento.
+Las excepciones o modificaciones se documentarán explícitamente.
+\small
+\begin{longtable}{L{1.7cm}L{5.6cm}L{7.1cm}}
+\toprule ID original & Aplicación a la PCB integrada & Evidencia prevista y frontera \\
+\midrule\endhead
+RF-01 & Adquirir y almacenar datos multiespectrales. & Interfaz de cámara compatible, recursos para transferencia y almacenamiento dimensionado. La cámara produce la imagen. \\
+RF-02 & Transmitir datos y recibir comandos de tierra. & Interfaz digital interna compatible y enlace bidireccional dimensionado para el volumen de datos y los contactos previstos. \\
+RF-03 & Recibir medidas y enviar comandos de actitud. & Interfaces hacia sensores y drivers externos; no se presupone la inclusión de actuadores en esta sección. \\
+RF-04 & Acceder a telemetría eléctrica y alertas. & Interfaz con potencia y capacidad de recibir medidas. La medición física de batería y sus protecciones permanecen en potencia. \\
+RNF-01 & Respetar el volumen del sistema 1U. & Reserva mecánica de la PCB integrada y de sus componentes; falta confirmar alturas y fijaciones. \\
+RNF-02 & Mantener separación física de tarjetas. & PCB central/comunicaciones y PCB de potencia independientes; integrar central y radio conserva esa separación. \\
+RNF-03 & Considerar integridad de las señales. & Restricciones según las interfaces realmente elegidas; no se exigirán pares diferenciales a buses que no los utilicen. \\
+RA-01 & Considerar el ambiente de la misión. & Selección y documentación de condiciones operativas; el grado industrial no demuestra tolerancia a radiación o vacío. \\
+RA-02 & Contribuir a la operación durante ciclos de iluminación y eclipse. & El presupuesto de consumo y la supervisión apoyan la gestión energética; la carga, descarga y protección de la batería corresponden a potencia. \\
+RA-03 & Considerar integración y vibraciones. & Encapsulados, conectores y fijaciones apropiados al prototipo; sin afirmar calificación de lanzamiento. \\
+RN-01 & Definir frecuencia y potencia compatibles con la estación terrestre y con los requisitos normativos aplicables. & Documentación del enlace y de las condiciones de operación. La banda y la potencia permanecen pendientes de verificación. \\
+RN-02 & Incorporar recomendaciones de implementación. & Desacoplamiento, retornos, filtrado y restricciones extraídas posteriormente de fuentes del fabricante. \\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\subsection{Revisión de especificaciones heredadas}
+Las especificaciones ET-01 a ET-08 proceden de la práctica 3 \cite{lab3}. Se distingue su valor de referencia de las comprobaciones necesarias para adoptarlo en el diseño detallado.
+\small
+\begin{longtable}{L{1.4cm}L{4.1cm}L{8.9cm}}
+\toprule ID & Base de la práctica 3 & Tratamiento en el diseño y justificación \\
+\midrule\endhead
+ET-01 & Batería 2S: 7,4 V nominal; 6,0--8,4 V. & Dato de contexto de potencia. No se conectará directamente a la lógica por asumir este rango; falta definir qué tensiones reguladas entrega la tarjeta de potencia. \\
+ET-02 & Distribución de 3,3 V y 5 V, con tolerancia de $\pm5\,\%$. & Conservar como base preliminar y verificar los extremos 3,135--3,465 V y 4,75--5,25 V frente a los dispositivos seleccionados. Alimentación y nivel lógico se comprobarán por separado. \\
+ET-03 & PCB de hasta $90\times90$ mm. & Aplicar a la PCB integrada completa. No asignar ese espacio por separado a central y comunicaciones. Confirmar con el equipo las zonas de conectores, fijaciones y altura. \\
+ET-04 & Almacenamiento no volátil $\geq16$ GB. & Conservar como requisito heredado mientras se revisa su fundamento. No confundir capacidad de almacenamiento con RAM necesaria para recibir y transferir imágenes. \\
+ET-05 & Enlace preliminar 435--438 MHz. & Se conserva como antecedente para revisión en comunicaciones; no constituye por sí solo autorización de operación ni selección definitiva. \\
+ET-06 & Tasa base $\geq9600$ bps. & Es un límite inferior preliminar, no una demostración de cumplimiento de la descarga diaria. Debe coordinarse con el volumen de datos y los contactos. \\
+ET-07 & Operación entre $-40$ y $+85\,^{\circ}\mathrm{C}$. & Revisar contra condiciones de operación recomendadas, no máximos absolutos. Comprobar el rango en cada dispositivo de la PCB, incluido el almacenamiento. La cámara externa se evaluará por separado; cualquier relajación del requisito deberá quedar justificada. \\
+ET-08 & Reloj del procesador $\geq80$ MHz. & Mantener trazabilidad, pero complementar con periféricos, RAM, DMA, pines y capacidad de transferencia. La frecuencia sola no demuestra desempeño. \\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\subsection{Interfaces internas y externas de la PCB}
+La siguiente tabla conserva los identificadores de la práctica 3. Las alternativas de bus no son decisiones intercambiables ya resueltas: deben cerrarse usando las características del dispositivo de cada extremo.
+\small
+\begin{longtable}{L{2cm}L{3.1cm}L{5.5cm}L{3.3cm}}
+\toprule ID & Relación & Definición preliminar & Condición de cierre \\
+\midrule\endhead
+IF-01, IF-05 & Potencia hacia central y memoria & Entrada regulada y retorno. 3,3 V y/o 5 V según acuerdo con potencia. & Tensiones, corriente máxima y secuencia. \\
+IF-03 & Potencia hacia radio & Alimentación del bloque de comunicaciones dentro de la misma PCB. & Consumo de transmisión y asignación de redes. \\
+IF-07 & Central hacia cámara & Configuración, captura y estado según cámara seleccionada. & Protocolo, niveles y señales de control. \\
+IF-08 & Cámara hacia central & Transferencia de imágenes; interfaz de mayor impacto en selección del procesador. & Bus, tasa de pico, temporización y formato. \\
+IF-09 & Central y almacenamiento & Bus interno a memoria no volátil, seleccionado según el computador y el dispositivo de almacenamiento; SPI y SDIO son ejemplos preliminares. & Dispositivo, capacidad y escritura sostenida. \\
+IF-10, IF-11 & Central y comunicaciones & Bus interno bidireccional; reservar conceptualmente control, estado e interrupción. & SPI/UART u otro bus, señales y carga de datos. \\
+IF-14, IF-15 & Central y actitud & Mediciones y comandos hacia sensores/controladores externos. & Buses, número de señales y ubicación de las etapas de manejo. \\
+IF-16 & Potencia hacia central & Telemetría y alertas; bus digital y/o señales discretas por acordar. & Protocolo, direcciones, niveles y estados de falla. \\
+IF-17, IF-18 & Supervisión y central & Medición/configuración de diagnóstico local o externo. & Ubicación y selección de sensores. \\
+IF-12, IF-13 & Comunicaciones y estación terrestre & Enlace bidireccional a través de la cadena RF y la antena. & Banda, potencia, protocolo y capacidad útil. \\
+Nueva: IF-C01 & Herramienta de desarrollo y central & Programación, depuración, referencia de tensión y reinicio. & Familia del procesador y estándar de conexión. \\
+\bottomrule
+\end{longtable}
+\normalsize
+Las interfaces IF-02 y IF-04 pertenecen a la alimentación de cámara y actitud, respectivamente, y la IF-06 a la supervisión. Su paso por la PCB integrada dependerá de la distribución de alimentación acordada. IF-12 e IF-13 describen el enlace inalámbrico; su conexión física con la tarjeta se realiza mediante la interfaz hacia antena. Las funciones de control y transferencia de imágenes de IF-07 e IF-08 pueden compartir una misma interfaz física si la cámara seleccionada lo permite.
+
+\subsection{Definición preliminar de conectores y señales}
+\label{sec:conectores}
+Se agrupan las señales por función para definir las conexiones con los dispositivos externos. Su número físico puede reducirse si el equipo adopta un conector común de apilamiento. No se selecciona aún una referencia comercial ni se declara una numeración física final: hacerlo sin cámara, sensores y corrientes acordados podría producir un conector insuficiente o incompatible.
+
+\begin{tabularx}{\textwidth}{L{2.2cm}XX}
+\toprule Identificación propuesta & Señales que se deben asignar & Criterio \\
+\midrule
+J\_EPS & Alimentación regulada, GND, telemetría y alertas; habilitación si se acuerda. & Número de contactos de potencia según corriente y conector; incluir estados al arrancar. \\
+J\_CAM & GND, control y datos de cámara; alimentación solo si se acuerda suministrarla desde esta PCB. & Definir con la interfaz elegida, incluyendo señales de datos, control, retorno y alimentación cuando corresponda. \\
+J\_ADCS & GND, buses de sensores y señales hacia controladores de actitud. & No transportar potencia de actuadores sin un acuerdo explícito. \\
+J\_DBG & GND, referencia de tensión, señales de programación/depuración y reinicio. & Ajustar al estándar soportado por el procesador; no asumir que la referencia alimenta la tarjeta. \\
+J\_ANT & Conexión RF entre la cadena de comunicaciones y la antena. & Tipo de conector, impedancia y límites de potencia según la solución RF. \\
+Sin conector central--radio & Bus digital y señales auxiliares en redes internas. & Ambos bloques se encuentran en la misma PCB; evita introducir una separación física innecesaria. \\
+\bottomrule
+\end{tabularx}
+
+\textbf{Asignación de contactos.} Para cada contacto se documentarán: conector y número de contacto, nombre de red, función, dirección respecto a la central, tensión de alimentación o nivel lógico, corriente cuando aplique, estado de arranque, destino y referencia del acuerdo de interfaz. Las señales RF y los pares diferenciales se describirán mediante sus parámetros eléctricos pertinentes, además de la identificación de sus contactos.
+
+La numeración física de los contactos permanece pendiente hasta seleccionar los conectores y definir los dispositivos externos. Esta asignación deberá verificarse en ambos extremos antes de cerrar el esquemático.
+
+\subsection{Necesidades de procesamiento y memoria}
+Se adopta como criterio de diseño la selección de una cámara espectral
+industrial compacta para la implementación académica de la carga útil.
+Su selección deberá verificar las bandas espectrales, la interfaz de
+datos, el consumo y la compatibilidad dimensional del conjunto de cámara
+y óptica con el formato 1U. Esta elección no implica demostrar aptitud
+para operación espacial.
+
+La arquitectura del computador de a bordo se determinará a partir de los
+requisitos de la cámara y de las funciones de almacenamiento,
+comunicación y supervisión del satélite. Se evaluarán tanto
+microcontroladores como procesadores de aplicaciones o módulos de
+cómputo, considerando la compatibilidad de sus interfaces, el soporte de
+software disponible, la memoria y el consumo. Este criterio evita
+restringir anticipadamente el diseño a un microcontrolador que pudiera
+resultar incompatible con la transferencia de imágenes.
+
+Se conserva un computador principal como coordinador del sistema.
+Su implementación definitiva y la referencia de la cámara se
+establecerán mediante una comparación técnica. Los presupuestos
+preliminares de potencia, espacio y datos se actualizarán con las
+características de los dispositivos seleccionados.
+
+
+La evaluación del procesador deberá comprobar:
+\begin{itemize}
+\item Periféricos compatibles y simultáneos para cámara, memoria, radio, potencia y actitud.
+\item Ausencia de conflictos de multiplexación de pines en la configuración completa.
+\item Capacidad de transferir datos y atender interrupciones sin perder información.
+\item Memoria de programa, RAM y buffers suficientes; DMA cuando resulte necesario para las tasas acordadas.
+\item Recursos de arranque, reinicio, supervisión y programación, con estados definidos de las salidas.
+\end{itemize}
+
+Para un conjunto de $N_b$ imágenes de banda, cada una con $N_x\times N_y$ muestras y una profundidad de $b$ bits por muestra, el volumen ideal sin compresión es
+\begin{equation}
+D_{\mathrm{img}}=\frac{N_xN_yN_b b}{8}\quad[\mathrm{bytes}],
+\end{equation}
+Esta expresión supone muestras empaquetadas sin relleno. Si cada muestra
+ocupa un número entero de bytes, el factor $b/8$ se sustituye por
+$\lceil b/8\rceil$. El volumen real incluirá el relleno por línea y los
+metadatos del formato seleccionado.
+
+En una cámara con filtros espectrales en mosaico, un cuadro bruto contiene
+una muestra por posición del sensor, no una muestra de cada banda en cada
+posición. Si el sensor tiene $N_{x,s}\times N_{y,s}$ posiciones, el volumen
+ideal del cuadro bruto es
+\begin{equation}
+D_{\mathrm{RAW}}=\frac{N_{x,s}N_{y,s}b}{8}\quad[\mathrm{bytes}],
+\end{equation}
+con las mismas correcciones de empaquetado. El volumen reconstruido se
+calculará con las dimensiones reales de las imágenes de banda resultantes.
+Se definirá qué representación se almacena y transmite; no se sumarán
+ambas salvo que el sistema deba conservarlas simultáneamente.
+
+Si la arquitectura permite almacenar por bloques, la RAM no necesita contener una imagen completa. Como criterio de dimensionamiento se utilizará
+\begin{equation}
+M_{\mathrm{RAM}}\geq M_{\mathrm{base}}+M_{\mathrm{adq}}+M_{\mathrm{alm}}+M_{\mathrm{radio}}+M_{\mathrm{reserva}}.
+\end{equation}
+Los términos representan uso base del software previsto, buffers de adquisición, almacenamiento y radio, y reserva justificada. Su simultaneidad debe comprobarse; no se asignan valores sin conocer los buses y los modos de operación. Dos buffers de adquisición, por ejemplo, solo se justificarían si se necesita recibir un bloque mientras se procesa o almacena el anterior.
+
+Para el almacenamiento de misión se utilizará el siguiente criterio conservador de retención sin descarga:
+\begin{equation}
+C_{\mathrm{util}}\geq C_0+\dot{D}_{\mathrm{total}}T_{\mathrm{ret}}+C_{\mathrm{reserva}},
+\end{equation}
+donde $C_0$ es el volumen ya almacenado al comenzar el intervalo,
+$\dot{D}_{\mathrm{total}}$ es la generación prevista en bytes por día,
+incluyendo imágenes, telemetría y eventos, y $T_{\mathrm{ret}}$ se expresa
+en días. Así se evita contabilizar los eventos dos veces. La reserva es
+espacio libre adicional previsto para operación y contingencias; la
+capacidad útil excluye el espacio no disponible para datos de misión,
+como el ocupado por el formato o el software. ET-04 se conserva hasta
+justificar y documentar cualquier modificación.
+
+\subsection{Compatibilidad entre datos y comunicaciones}
+\label{sec:datos}
+El presupuesto de datos vincula la capacidad de adquisición, el almacenamiento y el enlace de comunicaciones. Estas funciones deben dimensionarse conjuntamente para evitar acumulación sostenida de información sin posibilidad de descarga.
+
+\subsubsection{Comprobación del presupuesto heredado}
+El cuadro 19 de la práctica 3 \cite{lab3} estima 10 adquisiciones diarias de 5 MB cada una. Adoptando MB decimales y 600 s diarios de contacto como en ese presupuesto:
+\begin{align}
+D_{\mathrm{imagenes,dia}}&=10(5\times10^6)=50\times10^6\ \mathrm{bytes},\\
+R_{\mathrm{imagenes,util}}&=\frac{8(50\times10^6)}{600}
+\approx666\,667\ \mathrm{bit/s}\approx667\ \mathrm{kbit/s}.
+\end{align}
+Al añadir la estimación heredada de 1,2 MB diarios de telemetría, la tasa útil total es aproximadamente 683 kbit/s. La tasa física deberá ser mayor si existen cabeceras, corrección de errores, retransmisiones o periodos no aprovechables. Si $\eta$ es la fracción útil del enlace,
+\begin{equation}
+R_{\mathrm{fisica}}\geq\frac{8D_{\mathrm{total,dia}}}{\eta\,T_{\mathrm{contacto}}},\qquad 0<\eta\leq1.
+\end{equation}
+En esta expresión, $D_{\mathrm{total,dia}}$ es el volumen generado durante un día y $T_{\mathrm{contacto}}$ es el tiempo de contacto asignado a su descarga. La fracción $\eta$ incluye la sobrecarga y el aprovechamiento efectivo dentro de ese intervalo; esos factores no deben descontarse nuevamente del tiempo. Su valor se determinará con el protocolo y el escenario de operación. Los 600 s son un supuesto heredado, no un resultado de análisis orbital realizado en esta práctica.
+
+Si se eligiera operar a 9600 bit/s, el máximo ideal durante 600 s sería
+\begin{equation}
+D_{9600}=\frac{9600(600)}{8}=720\,000\ \mathrm{bytes}=0,72\ \mathrm{MB}.
+\end{equation}
+Por tanto, una operación a esa tasa no descarga el volumen estimado, incluso sin sobrecarga. ET-06 especifica un mínimo y permite escoger una tasa mayor; la contradicción aparece al tratar 9600 bit/s como solución suficiente. Incrementar la memoria solo retrasa la saturación si la generación supera permanentemente la descarga.
+
+\subsubsection{Criterio adoptado para el nuevo presupuesto}
+El presupuesto de datos se recalculará a partir de las características
+de la cámara seleccionada. Se mantiene como escenario preliminar una
+frecuencia de diez adquisiciones diarias y un tiempo total de contacto
+de 600 segundos por día. Ambos valores se consideran supuestos de
+dimensionamiento sujetos a revisión; el tiempo de contacto deberá
+comprobarse mediante el análisis de las oportunidades de comunicación.
+
+El volumen de cada adquisición se determinará con la resolución, el
+formato de salida, el empaquetado de píxeles, los metadatos y las bandas
+efectivamente adquiridas y conservadas. En sensores con filtros
+espectrales en mosaico se distinguirá el tamaño del cuadro bruto del
+volumen de las imágenes espectrales reconstruidas, evitando contabilizar
+varias veces los mismos datos. El cálculo inicial utilizará datos sin
+compresión, de modo que la viabilidad del enlace no dependa de una
+reducción de tamaño todavía no demostrada.
+
+La telemetría se dimensionará por separado a partir de las variables
+registradas, los bytes por registro y la frecuencia de generación.
+En consecuencia, los 50 MB diarios de imágenes y los 1,2 MB diarios
+de telemetría de la práctica 3 se conservan únicamente como antecedentes
+del análisis anterior y serán sustituidos por los resultados de este
+dimensionamiento.
+
+El volumen diario resultante y el tiempo de contacto establecerán la
+tasa útil requerida del enlace. La selección de comunicaciones deberá
+considerar además la sobrecarga del protocolo y el margen necesario
+para las condiciones de operación previstas. Si la capacidad de descarga
+resulta insuficiente, se revisarán conjuntamente la frecuencia de
+adquisición, el volumen conservado por captura y la capacidad del enlace.
+La selección definitiva del computador y del radio deberá ser compatible
+con este presupuesto y con las tasas de transferencia internas.
+
+\subsection{Alimentación y presupuesto de consumo}
+\subsubsection{Antecedentes y criterio de dimensionamiento}
+El cuadro 18 de la práctica 3 \cite{lab3} asigna a OBC y memoria 150 mW nominales y 300 mW máximos. Son estimaciones, no resultados de selección. Para observar su equivalencia a corriente, suponiendo que toda esa potencia se entrega en un único riel ideal de 3,3 V:
+\begin{equation}
+I_{\mathrm{nom}}=\frac{0,150}{3,3}\approx45,5\ \mathrm{mA},\qquad
+I_{\mathrm{max}}=\frac{0,300}{3,3}\approx90,9\ \mathrm{mA}.
+\end{equation}
+Estas corrientes son equivalencias de las estimaciones heredadas y no dimensionan todavía el conector ni constituyen un límite comprobado. Dado que la selección admite un procesador de aplicaciones o un módulo de cómputo, el presupuesto de 300 mW no se adopta como límite validado de la solución. El supuesto de un solo riel excluye pérdidas y debe sustituirse por el reparto real de consumos. La memoria puede presentar picos de escritura que no estén representados en el promedio heredado.
+
+Para cada riel se calculará la corriente máxima aplicable sumando dispositivos activos en cada modo y sus circuitos auxiliares. Si existe conversión local, su corriente de entrada se estimará mediante
+\begin{equation}
+I_{\mathrm{entrada}}=\frac{\sum_k V_k I_k}{\eta_{\mathrm{reg}}V_{\mathrm{entrada}}},
+\end{equation}
+Esta expresión supone una eficiencia equivalente para el conjunto de salidas. Si se emplean convertidores independientes, se calculará la potencia de entrada de cada uno con su eficiencia y carga, y se sumarán sus contribuciones junto con las cargas directas. El consumo propio solo se añadirá por separado cuando no esté incluido en la eficiencia utilizada, evitando contabilizarlo dos veces.
+
+La central y comunicaciones compartirán presupuesto de entrada de la PCB. No se suman aquí como valor definitivo los 300 mW de central y los 2000 mW de transmisión heredados: falta confirmar simultaneidad, pérdidas y dispositivos. La potencia eléctrica del bloque de radio tampoco equivale a su potencia RF de salida.
+
+\subsubsection{Condiciones de arranque, reinicio y supervisión}
+Se establecen condiciones de arranque y reinicio que eviten operaciones
+involuntarias mientras la alimentación se estabiliza y el computador
+inicializa sus periféricos. El computador deberá permanecer en reinicio
+hasta que su alimentación y las condiciones de arranque cumplan los
+requisitos del dispositivo seleccionado. Asimismo, se definirá su
+respuesta ante una caída de tensión fuera del intervalo de operación.
+
+Durante el arranque, la transmisión de radio permanecerá deshabilitada
+hasta recibir una autorización explícita del sistema, sin que ello
+implique necesariamente desactivar la recepción. La orden de captura
+de la cámara permanecerá inactiva hasta completar su alimentación y
+configuración. Para el almacenamiento se establecerán los estados
+inactivos de las señales de selección o escritura que correspondan a
+la interfaz elegida. Las salidas hacia los controladores de actitud
+adoptarán estados iniciales acordados con ese subsistema para evitar
+activaciones involuntarias.
+
+La implementación de estas condiciones se determinará con las hojas de
+datos de los componentes seleccionados. Se comprobarán los estados de
+los pines durante el encendido y el reinicio, los umbrales y tiempos de
+supervisión y las secuencias de alimentación. Cuando resulte necesario,
+se incorporarán resistencias de polarización, señales de habilitación
+o un supervisor externo. Su selección se justificará considerando las
+funciones ya integradas en cada dispositivo y el comportamiento cuando
+los bloques conectados no estén alimentados simultáneamente.
+
+La prevención de operaciones involuntarias durante el arranque se
+distingue de la protección de datos frente a una interrupción de energía
+durante una escritura. Esta última condición se evaluará con el
+almacenamiento seleccionado, su comportamiento ante pérdida de
+alimentación y los recursos disponibles para detectar y gestionar el
+evento. Por tanto, no se considerará resuelta únicamente mediante la
+polarización de señales o el reinicio del computador.
+
+\subsection{Espacio y condiciones de integración}
+El máximo preliminar de $90\times90$ mm corresponde a toda la PCB. No se establece un reparto porcentual entre central y radio sin conocer encapsulados y restricciones. El cierre mecánico requiere dimensiones útiles, agujeros, zonas de exclusión, altura admisible, posición de conectores y espacio para acceso de depuración.
+
+La integración de digital y RF obliga a acordar zonas funcionales y recorridos de corriente. No se prescribe partir el plano de tierra sin análisis: la continuidad de retornos y las recomendaciones de los componentes se revisarán en los puntos de restricciones. El rango industrial de temperatura, por sí solo, no acredita aptitud espacial; las simplificaciones académicas se conservarán explícitas.
+
+\subsection{Registro inicial de cambios}
+\begin{tabularx}{\textwidth}{L{1.1cm}XX}
+\toprule ID & Cambio o criterio adoptado & Justificación y efecto \\
+\midrule
+C-01 & Integrar central y comunicaciones en una PCB. & Actualización de la partición física asignada. IF-10/11 se vuelven internas; se comparte área y presupuesto eléctrico. \\
+C-02 & Corregir método de verificación de ET-07. & Usar condiciones de operación recomendadas en lugar de máximos absolutos, en coherencia con la guía 4. \\
+C-03 & Complementar ET-08 con recursos y tasas. & La frecuencia no demuestra compatibilidad de cámara, memoria y periféricos. \\
+C-04 & Revisar presupuesto de datos frente al enlace. & 9600 bit/s no satisface el volumen diario supuesto. Puede afectar adquisición, almacenamiento y comunicaciones. \\
+C-05 & Precisar RNF-03 según la interfaz elegida. & Control de impedancia y pares diferenciales solo se aplican cuando la interfaz y sus condiciones lo requieren. \\
+C-06 & Evaluar una cámara espectral industrial compacta y un computador compatible. & La referencia final permanece abierta; la implementación académica requiere verificar cámara, óptica, recursos y presupuesto conjunto. \\
+C-07 & Adoptar requisitos de arranque y supervisión. & Definir estados iniciales y respuesta ante pérdida de alimentación; los circuitos concretos se seleccionarán posteriormente. \\
+\bottomrule
+\end{tabularx}
+Los cambios mantienen los identificadores originales para conservar la trazabilidad. Las modificaciones de prestaciones deberán reflejarse en las especificaciones y los presupuestos afectados.
+
+\subsection{Parámetros pendientes de definición}
+\small
+\begin{longtable}{L{1.2cm}L{6.2cm}L{7cm}}
+\toprule ID & Dato o acuerdo pendiente & Evidencia requerida para su definición \\
+\midrule\endhead
+P-01 & Cámara y óptica: referencia, bandas, resolución espacial prevista, formato, interfaz, consumo, dimensiones y tasa de entrega. & Hojas de datos y comprobación de la imagen esperada a 550 km, de la integración física y de la compatibilidad eléctrica. \\
+P-02 & Volumen diario, contacto y capacidad útil del enlace. & Presupuesto actualizado con diez adquisiciones diarias y 600 s de contacto como escenario inicial, sujeto a verificación. \\
+P-03 & Bus interno con radio, niveles, interrupciones y control; conexión RF hacia antena. & Tabla de señales, parámetros de la interfaz RF y confirmación del transceptor. \\
+P-04 & Rieles disponibles, corrientes, secuencia y alertas. & Contrato eléctrico y presupuesto por modo. \\
+P-05 & Conexiones de sensores y drivers de actitud. & Protocolo, señales y ubicación de drivers. \\
+P-06 & Área útil, fijaciones, altura y posición de conectores. & Plano o dimensiones acordadas. \\
+P-07 & Recursos de CPU, RAM y almacenamiento. & Estimación basada en interfaces, buffers y retención requerida. \\
+P-08 & Referencias de conectores y numeración física completa. & Pinout revisado y límites eléctricos. \\
+P-09 & Alcance térmico y simplificaciones académicas. & Condiciones de operación verificables de la PCB y de la cámara; justificación de cualquier cambio frente a ET-07. \\
+P-10 & Implementación de arranque y supervisión. & Estados y umbrales por dispositivo, secuencias de alimentación y análisis de interrupción de escritura. \\
+\bottomrule
+\end{longtable}
+\normalsize
+La definición de estos parámetros debe preceder al cierre de las decisiones de selección y conectividad que dependen de ellos. Las especificaciones preliminares se actualizarán con los resultados del dimensionamiento y los acuerdos de interfaz.
+
+% Módulos por incorporar conforme se complete su desarrollo:
+% Organización del proyecto y documentación.
+% Selección de componentes: procesamiento, almacenamiento y comunicaciones.
+% Diseño de circuitos: alimentación, computador, interfaces y radiofrecuencia.
+% Librerías, captura esquemática y restricciones de PCB.
+% Fabricación, validación, BOM y análisis de costos.
+% El desarrollo de comunicaciones se incorpora en las secciones técnicas
+% correspondientes, como parte de la misma PCB.
+
+\begin{thebibliography}{9}
+\bibitem{guia4} Departamento de Ingeniería Electrónica, Universidad de Antioquia. \emph{Práctica 4: Diseño Electrónico y Captura Esquemática}. Archivo suministrado: \texttt{lab004\_2598575\_20262.pdf}. Véanse descripción, procedimiento 1 y entregables.
+\bibitem{lab3} D. F. Yépez Taimal y S. Cáceres Vásquez. \emph{Práctica 3: Requisitos, especificaciones y arquitectura electrónica del CubeSat UD34}. 28 de septiembre de 2026. Archivo suministrado: \texttt{Diseño\_Lab3.pdf}. Véanse secciones 2--4 y 9--10; cuadros 16--19.
+\end{thebibliography}
+\end{document}
