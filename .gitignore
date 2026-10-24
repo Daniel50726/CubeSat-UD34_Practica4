@@ -7,6 +7,7 @@
 /informe/README.md
 /informe/cambio_*.txt
 /informe/informe_revisado_v03.txt
+/informe/fragmentos/
 
 # Compilacion de LaTeX; los PDF de entrega se guardan en entregables/
 *.aux

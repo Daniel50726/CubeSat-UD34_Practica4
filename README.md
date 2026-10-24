@@ -15,7 +15,7 @@ La arquitectura toma como antecedente la práctica 3. Se ha seleccionado la XIME
 
 Primer paquete técnico: `documentacion/seleccion_componentes.md`, `documentacion/acuerdos_interfaces/IF_CAM_revision_01.md`, el manual en `documentacion/hojas_de_datos/` y `calculos/calculos_y_restricciones.xlsx`. El libro contiene entradas con fuentes, cálculos editables y la matriz inicial de restricciones. Los valores desconocidos se indican como pendientes.
 
-El fragmento `informe/fragmentos/seleccion_camara_01.txt` está preparado para integración manual en el informe. Todavía no está incorporado en `informe/latex/main.tex`. La BOM exportada, las librerías y el ERC se completarán cuando exista el diseño de Altium.
+El informe vigente ya incorpora la selección de la cámara. La BOM exportada, las librerías y el ERC se completarán cuando exista el diseño de Altium.
 
 El alcance incluye componentes, cálculos, librerías, esquemático jerárquico, restricciones, validación eléctrica y costos de componentes para 10, 100 y 1000 tarjetas. El enrutamiento, los archivos de fabricación y el software de vuelo quedan fuera de esta práctica.
 
@@ -46,7 +46,7 @@ Cuando exista el proyecto, abrir su archivo `.PrjPcb` desde Altium y comprobar q
 
 ## Compilar el informe
 
-El archivo de trabajo es `informe/latex/main.tex`, copiado de la revisión 0.3 aceptada. Los borradores antiguos y los fragmentos de intercambio conservados en `informe/` no forman parte de la versión a publicar.
+El archivo de trabajo es `informe/latex/main.tex`, actualizado con la versión editada por el autor y las citas a las prácticas 3 y 4 restauradas. Las sugerencias de LaTeX se guardan únicamente en la carpeta local `informe/fragmentos/`, excluida de Git, para su integración manual. Los borradores antiguos tampoco forman parte de la versión a publicar.
 
 En Overleaf, cargar `informe/latex/main.tex` como documento principal y usar pdfLaTeX. Con una distribución local de LaTeX, ejecutar desde `informe/latex/`:
 
