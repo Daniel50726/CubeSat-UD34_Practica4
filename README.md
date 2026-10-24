@@ -11,7 +11,11 @@ Docente: Maria Katherine Plazas Olaya.
 
 ## Estado del proyecto
 
-La arquitectura toma como antecedente la práctica 3. Se ha elaborado el contenido inicial del informe y se está organizando la documentación de la práctica 4. La selección de cámara, computador y otros componentes, las interfaces definitivas y los esquemáticos siguen en desarrollo. No se ha validado un diseño electrónico completo.
+La arquitectura toma como antecedente la práctica 3. Se ha seleccionado la XIMEA MQ022HG-IM-SM5X5-7NIR2 como cámara de referencia eléctrica académica. La óptica y la capacidad de observar lotes a 550 km siguen sin validación. El computador, los demás componentes y el esquemático permanecen en desarrollo.
+
+Primer paquete técnico: `documentacion/seleccion_componentes.md`, `documentacion/acuerdos_interfaces/IF_CAM_revision_01.md`, el manual en `documentacion/hojas_de_datos/` y `calculos/calculos_y_restricciones.xlsx`. El libro contiene entradas con fuentes, cálculos editables y la matriz inicial de restricciones. Los valores desconocidos se indican como pendientes.
+
+El fragmento `informe/fragmentos/seleccion_camara_01.txt` está preparado para integración manual en el informe. Todavía no está incorporado en `informe/latex/main.tex`. La BOM exportada, las librerías y el ERC se completarán cuando exista el diseño de Altium.
 
 El alcance incluye componentes, cálculos, librerías, esquemático jerárquico, restricciones, validación eléctrica y costos de componentes para 10, 100 y 1000 tarjetas. El enrutamiento, los archivos de fabricación y el software de vuelo quedan fuera de esta práctica.
 
