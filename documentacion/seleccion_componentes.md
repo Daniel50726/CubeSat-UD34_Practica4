@@ -65,10 +65,10 @@ La evaluación, las fuentes primarias y sus archivos locales se encuentran en `e
 - Aprobada: 2026-10-25. Texas Instruments TXU0202DCUR, DCU de 8 contactos.
 - Función: dos canales opuestos entre el dominio de 1,8 V del SoM y el de 3,3 V externo. Trazabilidad: IF-14/15; cambio C-11.
 - Alternativa: SN74AXC2T245 con dirección configurable; se prefiere la dirección fija y los terminales accesibles del DCU para esta UART.
-- Soporte: dos condensadores de 100 nF; tres pull-ups de 10 kohm y un pull-down de OE de 10 kohm, 1 %. Referencias comerciales de pasivos pendientes.
+- Soporte: dos condensadores de 100 nF; dos pull-ups de 10 kohm, un pull-up de A2Y de 47 kohm y un pull-down de OE de 10 kohm, 1 %. Referencias propuestas: RC0603FR-0710KL, RC0603FR-0747KL y C0603C104K3RACTU (25 V). ESD321DPYR como protección primaria en revisión.
 - Condición externa aprobada: pines UART tolerantes hasta 3,6 V sin alimentación, alta impedancia y fuga máxima de 10 uA por pin. Es requisito del módulo idealizado, no validación de un dispositivo real.
-- Pendientes: GPIO OE y estado de reinicio, fuente/secuencia 1,8 V, umbrales/fugas garantizados del Verdin, ESD, carga dinámica, pinout y huella verificados en Altium. La selección no equivale a circuito liberado.
-- Cálculos: Entradas!A90:F97 y Calculos!A79:D86. Cotas por resistencia, no consumo permanente total. Fuentes SRC-014/015.
+- Pendientes: márgenes de entrada del TXU0202 en toda la envolvente, coordinación ESD, carga dinámica y verificación Altium. OE asignado a X1.206; VCCA a X1.214. El estado de GPIO debe mantenerse bajo desde el cargador de arranque. La selección no equivale a circuito liberado.
+- Cálculos: Entradas!A90:F107 y Calculos!A79:D97. Cotas por resistencia, no consumo permanente total. Fuentes SRC-014/015.
 
 ## Método para las siguientes selecciones
 

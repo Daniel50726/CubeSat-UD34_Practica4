@@ -427,143 +427,263 @@ El SPI permanece como pistas internas entre las dos secciones de la
 misma PCB. No se añade un conector entre computador y comunicaciones.
 
 \subsection{Adaptación de niveles de la UART de actitud}
-Se selecciona el traductor \texttt{TXU0202DCUR} de Texas Instruments,
-encapsulado DCU de ocho contactos. Sus dos canales de sentido fijo y
-opuesto corresponden a transmisión y recepción de la UART. La elección
-evita añadir señales de selección de dirección para una interfaz cuyo
-sentido no cambia durante el funcionamiento \cite{txu0202}.
+La UART se implementa mediante el TXU0202DCUR, con un canal desde el
+computador hacia actitud y otro en sentido opuesto. La dirección fija
+corresponde a la función TX/RX y evita controles de dirección adicionales.
+La alternativa SN74AXC2T245 admite direcciones configurables y umbrales
+especificados por intervalos de alimentación; se conserva como alternativa
+si la revisión de márgenes exige modificar el traductor
+\cite{txu0202,axc2t245}. La selección actual permite la captura inicial,
+pero no se considera una validación completa del bloque.
 
-Se consideró el \texttt{SN74AXC2T245}, que admite control independiente
-de dirección por canal y es eléctricamente apto para estos dominios.
-Su flexibilidad añade conexiones de control que esta UART no necesita
-\cite{axc2t245}. Se prefiere el TXU0202 en DCU por su función y por
-sus terminales accesibles para inspección. No se afirma que sea la
-alternativa más económica: el precio y la disponibilidad se registrarán
-en el análisis de compras. Un divisor resistivo tampoco resuelve ambos
-sentidos, pues no eleva la salida de 1,8 V hacia el dominio de 3,3 V.
+\subsubsection{GPIO de habilitación y estados de arranque}
+Se asigna GPIO\_1, contacto X1.206 del Verdin, a
+\texttt{UART\_ADCS\_EN}. Corresponde a GPIO1\_IO00 del SoC y a la
+función GPIO1\_IO0, ALT0. Es un GPIO dedicado y no comparte los
+contactos asignados a UART\_1, I2C\_1 o SPI\_1. La tabla 17 del
+Verdin indica polarización hacia bajo en el estado de reinicio y la
+tabla 21 identifica su función GPIO \cite{verdinds}.
 
-\subsubsection{Conexiones}
-Se denomina U\_UART al traductor hasta realizar la anotación definitiva.
-Los números siguientes corresponden específicamente al encapsulado DCU,
-según la sección 6 de su hoja de datos \cite{txu0202}.
+La red se conecta a OE, pin 6 del TXU0202, y lleva R\_OE de
+10 k$\Omega$ a GND. Un nivel bajo mantiene las salidas deshabilitadas.
+El estado de reinicio documentado no equivale a una garantía de que
+el cargador de arranque y Linux conservarán ese estado: ambos deberán
+mantener el GPIO bajo hasta configurar TX en reposo alto y verificar
+las alimentaciones. La implementación de software queda fuera de esta
+práctica, pero esta condición se registra como requisito de integración.
+La resistencia no puede contrarrestar una salida GPIO activamente alta.
 
+La secuencia prevista es: GPIO bajo; estabilización de fuentes;
+configuración de UART y desactivación de polarizaciones internas que
+interfieran con las externas; TX en reposo alto; habilitación del enlace.
+Antes del apagado controlado se deshabilita OE. En reinicio se vuelve
+al estado de deshabilitación. Los datos recibidos durante una transición
+se descartan; una transición eléctrica no debe interpretarse como orden
+válida de actuación. No se incluye suspensión profunda como modo
+operativo validado de este bloque.
+
+\subsubsection{Origen de los 1,8 V y presupuesto de alimentación}
+VCCA, pin 3, se conecta a \texttt{PWR\_1V8\_MOCI}, contacto X1.214.
+La salida documentada tiene capacidad máxima de 250 mA. La guía Verdin
+recomienda utilizar este dominio para circuitos conectados a sus señales,
+por su relación con las fuentes de E/S y la prevención de alimentación
+involuntaria \cite{verdinds,verdinguide}. No se conecta a una fuente
+externa de 1,8 V ni se confunde con una entrada de alimentación del SoM.
+
+VCCB, pin 7, se conecta al riel local de 3,3 V de la tarjeta.
+El GND del traductor, el del SoM y J\_ADCS.1 comparten referencia.
+Se coloca un condensador de 100 nF entre cada alimentación y GND,
+próximo al contacto correspondiente \cite{txu0202}.
+
+Se reserva inicialmente un presupuesto de diseño de 1 mA del riel
+PWR\_1V8\_MOCI para el conjunto UART. Equivale al 0,4\,\% de los
+250 mA publicados; no es un consumo máximo demostrado ni autoriza
+ignorar las demás cargas de esa salida. La suma de cargas y los
+transitorios se verificarán en el presupuesto general. La capacidad
+de la fuente y la demanda real se mantienen como magnitudes distintas.
+
+Para el análisis se conservan envolventes de 1,65--1,95 V y 3,0--3,6 V.
+Son límites que deberá satisfacer el diseño, no tolerancias atribuidas
+sin comprobación a la salida de Toradex. Si los rieles o las caídas
+reales exceden estas envolventes, se recalculan los márgenes.
+
+\subsubsection{Conexiones completas del traductor}
+Los números corresponden exclusivamente al encapsulado DCU.
+Los designadores funcionales se convertirán en designadores únicos
+al anotar el proyecto Altium.
 \begin{tabularx}{\textwidth}{L{1cm}L{1.8cm}X}
-\toprule Pin & Función & Conexión \\
+\toprule Pin & Nombre & Conexión \\
 \midrule
-1 & B2 & ADCS\_RX, desde J\_ADCS.3; entrada de 3,3 V. \\
-2 & GND & Plano de referencia común. \\
-3 & VCCA & Riel local de 1,8 V asociado al dominio del SoM. \\
-4 & A2Y & UART\_1\_RXD, contacto X1.129 del Verdin. \\
-5 & A1 & UART\_1\_TXD, contacto X1.131 del Verdin. \\
-6 & OE & UART\_ADCS\_EN; habilitación de 1,8 V, activa en alto. \\
-7 & VCCB & Riel local regulado de 3,3 V. \\
-8 & B1Y & ADCS\_TX, hacia J\_ADCS.2; salida de 3,3 V. \\
+1 & B2 & J\_ADCS.3, ADCS\_RX; pull-up de 10 k$\Omega$ a 3,3 V. \\
+2 & GND & Referencia común y retornos de desacoplo. \\
+3 & VCCA & X1.214, PWR\_1V8\_MOCI; 100 nF a GND. \\
+4 & A2Y & X1.129, UART\_1\_RXD; pull-up de 47 k$\Omega$ a VCCA. \\
+5 & A1 & X1.131, UART\_1\_TXD; pull-up de 10 k$\Omega$ a VCCA. \\
+6 & OE & X1.206, GPIO\_1; pull-down de 10 k$\Omega$ a GND. \\
+7 & VCCB & Riel local de 3,3 V; 100 nF a GND. \\
+8 & B1Y & J\_ADCS.2, ADCS\_TX. \\
 \bottomrule
 \end{tabularx}
 
-J\_ADCS.1 conserva GND. La asignación X1 se sustenta en la tabla de
-UART del Verdin \cite{verdinds}. VCCA deberá seguir el dominio de
-alimentación correspondiente del módulo; no se introducirá una fuente
-de 1,8 V independiente sin revisar la secuencia del SoM.
+Las resistencias definen estados en alta impedancia; no son
+terminaciones de línea ni adaptadores de tensión. Durante el reinicio,
+las polarizaciones internas de los pines UART pueden competir con las
+externas. No se supone reposo alto garantizado hasta configurar los
+pines; OE permanece bajo durante esa etapa.
 
-Se disponen dos condensadores de 100 nF, uno entre cada alimentación
-del traductor y GND, próximos a sus contactos. El valor procede de la
-recomendación de desacoplo del fabricante \cite{txu0202}, sección 12.1.
-Se especifican inicialmente cerámicos X7R de 10 V, formato 0603,
-con referencia comercial y capacitancia efectiva por comprobar.
-La cifra de 100 nF es una recomendación de implementación, no un
-cálculo suficiente de estabilidad de las fuentes de la tarjeta.
+\subsubsection{Contrato eléctrico del módulo externo}
+El módulo de actitud recibe su alimentación externamente. Se exige
+que su salida TX entregue al menos 2,9 V en alto y como máximo 0,2 V
+en bajo, con carga de hasta 0,5 mA. Se exige a su entrada RX reconocer
+alto a partir de 2,52 V y bajo hasta 0,90 V. Son especificaciones
+impuestas al módulo externo idealizado, no resultados de un módulo
+comercial ensayado.
 
-\subsubsection{Reposo, habilitación y desconexión}
-Se colocan resistencias de 10 k$\Omega$, tolerancia 1\,\%, desde A1 y
-A2Y hacia VCCA y desde B2 hacia VCCB. Su finalidad es establecer
-reposo alto cuando el transmisor o la salida correspondiente estén en
-alta impedancia. Estas resistencias no son terminaciones de línea.
-En el extremo externo, el receptor de actitud debe mantener su reposo
-con una polarización a su propia alimentación cuando B1Y esté aislado.
+La entrada RX externa llevará polarización de 47 k$\Omega$, 1\,\%,
+a su propio riel, limitado a 3,6 V. Su fuga será como máximo
+10 $\mu$A por pin, incluyendo la condición de módulo apagado; sus
+pines tolerarán señales hasta 3,6 V sin alimentar su fuente interna.
+Se conserva el arnés de hasta 150 mm y la referencia GND común.
+El límite de 10 $\mu$A no incluye una resistencia que conecte
+intencionadamente la línea a un riel apagado de baja impedancia;
+el módulo externo debe resolver ese caso para cumplir el contrato.
 
-OE lleva una resistencia de 10 k$\Omega$, 1\,\%, a GND. Se reserva
-una salida de control de 1,8 V que deberá permanecer en alta impedancia
-o en bajo durante el arranque. Su contacto físico y estado de reinicio
-se verificarán antes de capturar el circuito definitivo. No se conecta
-OE permanentemente a la alimentación.
+La protección de apagado del traductor local no detecta por sí sola
+que el ADCS remoto se ha apagado mientras VCCA y VCCB siguen activas.
+Por ello el contrato de alta impedancia es obligatorio. Si no se cumple,
+se modifica el aislamiento externo o la interfaz. No se especifica
+conexión en caliente.
 
-La secuencia funcional es: mantener OE bajo, estabilizar las fuentes,
-configurar TX en reposo alto y habilitar la UART; después elevar OE
-cuando el enlace externo esté disponible. Durante un apagado controlado
-se baja OE antes de retirar alimentación. El software futuro deberá
-descartar tramas incompletas y verificar integridad; no se implementa
-software en esta práctica.
-
-La protección de apagado del TXU0202 limita situaciones en sus propios
-dominios de alimentación \cite{txu0202}. Si el módulo ADCS se apaga
-pero las dos fuentes del traductor siguen activas, esa protección no
-detecta el apagado remoto. Por ello se exige al módulo externo que
-sus pines UART toleren hasta 3,6 V cuando estén apagados y permanezcan
-en alta impedancia, sin alimentar su riel interno mediante las señales.
-Se fija una fuga máxima de 10 $\mu$A por pin como requisito del módulo
-externo, no como una propiedad verificada de un dispositivo seleccionado.
-La polarización externa no debe elevar ADCS\_TX por encima de 3,6 V.
-
-Si el módulo externo no cumple esta condición, deberá revisarse su
-aislamiento o añadirse una señal de disponibilidad con desconexión
-por hardware; OE controlado únicamente por software no garantiza
-protección frente a una pérdida inesperada de energía remota.
-No se autoriza conexión en caliente del arnés con esta definición.
-
-\subsubsection{Cálculos de polarización}
-Para dimensionar inicialmente las resistencias se utilizan envolventes
-de 1,65--1,95 V y 3,0--3,6 V. Son intervalos de evaluación que deben
-contener los rieles reales; no sustituyen su especificación definitiva.
-Con resistencias de 10 k$\Omega$ y 1\,\%:
+\subsubsection{Cálculos y márgenes: resultados y límites}
+Para las resistencias seleccionadas se consideran tolerancia inicial
+del 1\,\% y coeficiente térmico de 100 ppm/$^{\circ}$C.
+En $-40$ a $+85\,^{\circ}$C, la desviación máxima respecto a
+$25\,^{\circ}$C es 65 $^{\circ}$C. Como envolvente conservadora:
 \begin{align}
-R_{\min}&=9900\ \Omega, &R_{\max}&=10100\ \Omega,\\
-I_{R,A,\max}&=\frac{1,95}{9900}=0,197\ \mathrm{mA}, &
-I_{R,B,\max}&=\frac{3,6}{9900}=0,364\ \mathrm{mA},\\
-P_{R,A,\max}&=\frac{1,95^2}{9900}=0,384\ \mathrm{mW}, &
-P_{R,B,\max}&=\frac{3,6^2}{9900}=1,309\ \mathrm{mW}.
+R_{\min}&=R_n(1-0,01)(1-0,0065)=0,983565R_n,\\
+R_{\max}&=R_n(1+0,01)(1+0,0065)=1,016565R_n.
 \end{align}
-Son cotas por resistencia cuando soporta toda la tensión del dominio.
-Una potencia nominal de al menos 0,1 W ofrece margen eléctrico amplio;
-la referencia concreta deberá mantener capacidad suficiente después
-de aplicar su reducción de potencia con temperatura.
+Para 47 k$\Omega$: $R_{\min}=46,228$ k$\Omega$ y
+$R_{\max}=47,779$ k$\Omega$. Para 10 k$\Omega$:
+$R_{\min}=9,836$ k$\Omega$ y $R_{\max}=10,166$ k$\Omega$.
+Estas cotas no incluyen envejecimiento; una deriva adicional deberá
+incorporarse si se convierte en requisito de diseño.
 
-Para comprobar la polarización se reserva una fuga adicional máxima
-de 10 $\mu$A por extremo conectado y se utiliza 2 $\mu$A como cota
-de entrada del traductor en el rango térmico completo, incluyendo su
-polarización interna según las secciones 7.3 y 7.5 \cite{txu0202}.
-La fuga adicional es un requisito por verificar para el GPIO o el
-transmisor externo, no un dato atribuido al Verdin.
+El cambio de 10 k$\Omega$ a 47 k$\Omega$ en A2Y reduce la corriente
+que debe absorber el traductor cuando RX está en bajo. Usando la fuga
+de 4 $\mu$A de la tabla GPIO de NXP como cota conservadora y sin
+polarización interna adicional habilitada \cite{imx8mpiec}:
 \begin{equation}
-\Delta V_{\max}=(10+2)\ \mu\mathrm{A}\cdot10100\ \Omega
-=0,1212\ \mathrm{V}.
+I_{A2Y,L}\leq\frac{1,95}{46227,555}+4\ \mu\mathrm{A}
+=46,18\ \mu\mathrm{A}<100\ \mu\mathrm{A}.
 \end{equation}
-En OE esta cota permite estimar el bajo impuesto por la resistencia
-cuando el controlador está en alta impedancia; en una entrada con
-pull-up representa una caída conservadora. El cierre eléctrico requiere
-contrastar los niveles resultantes con los umbrales garantizados y
-las fugas del GPIO concreto a las tensiones y temperaturas aplicables.
-No se emplean umbrales típicos como prueba de margen garantizado.
+Así se puede utilizar la especificación del TXU0202 para carga de
+100 $\mu$A: $V_{OH}\geq V_{CCO}-0,1$ V y $V_{OL}\leq0,1$ V.
+No se utiliza esta especificación con una carga mayor.
+Con $V_{IH}=0,7V_{DD}$ y $V_{IL}=0,3V_{DD}$ del SoC,
+y evaluando extremos independientes de la envolvente:
+\begin{align}
+NM_H&\geq(1,65-0,1)-0,7(1,95)=0,185\ \mathrm{V},\\
+NM_L&\geq0,3(1,65)-0,1=0,395\ \mathrm{V}.
+\end{align}
+Estos resultados corresponden al recorrido traductor hacia RX del
+Verdin y a las condiciones de carga indicadas; no validan los demás
+recorridos automáticamente.
 
-El tiempo de bit a la velocidad adoptada es
+Para B1Y se limita la carga estática externa mediante el contrato:
 \begin{equation}
-T_b=\frac{1}{115200}=8,681\ \mu\mathrm{s}.
+I_{B1Y,L}\leq\frac{3,6}{46227,555}+10\ \mu\mathrm{A}
++0,05\ \mu\mathrm{A}=87,93\ \mu\mathrm{A}<100\ \mu\mathrm{A}.
 \end{equation}
-La validación temporal deberá incluir retardo, carga capacitiva real,
-flancos y tolerancia de reloj de ambos extremos. El tiempo de bit no
-demuestra por sí solo que el arnés mantenga integridad. Tampoco se
-aplica al cable un retardo medido por el fabricante con otra carga.
+El último término corresponde a la envolvente de fuga del TVS a su
+tensión de trabajo. Resultan $NM_H\geq2,9-2,52=0,38$ V y
+$NM_L\geq0,90-0,1=0,80$ V hacia el receptor externo. El margen
+se consume con ruido, diferencias de tierra y caída en el arnés;
+no se interpreta como una tensión de ruido permitida sin presupuesto.
 
-\subsubsection{Condiciones de cierre del bloque}
-Antes de liberar el esquemático se completarán el GPIO de OE, el origen
-y secuencia del riel de 1,8 V, los márgenes de entrada y salida del
-Verdin, el contrato eléctrico del módulo externo, las referencias de
-pasivos y la protección del conector frente a ESD. Las clasificaciones
-ESD del integrado no sustituyen la protección del conjunto.
-Se reservarán puntos de prueba para ambas fuentes, OE, TX, RX y GND.
-El presupuesto de consumo incluirá las corrientes por polarización,
-el consumo del traductor y la carga dinámica, sin tratar las cotas por
-resistencia como un consumo permanente de la misión.
+La dirección SoM hacia A1/OE necesita especial atención. NXP especifica
+$V_{OH}\geq0,8V_{DD}$ y $V_{OL}\leq0,2V_{DD}$ en las condiciones
+de carga de su tabla GPIO. TI tabula para entrada de 1,65 V los
+extremos Schmitt $V_{T+\max}=1,13$ V y $V_{T-\min}=0,35$ V.
+En ese punto documentado, con ambos dominios a 1,65 V:
+\begin{align}
+NM_H&\geq0,8(1,65)-1,13=0,190\ \mathrm{V},\\
+NM_L&\geq0,35-0,2(1,65)=0,020\ \mathrm{V}.
+\end{align}
+El margen bajo es reducido. No se extrapola esa fila de TI a toda
+la banda 1,65--1,95 V ni se interpolan umbrales como si fueran límites
+garantizados. Por tanto, no se declara cerrado el margen de A1/OE
+en toda la envolvente. Para liberarlo se requiere información de
+fabricante que cubra el intervalo o sustituir el traductor por una
+solución con límites adecuados y explícitos. Una medición típica puede
+apoyar la revisión, pero no demuestra un máximo garantizado.
+
+Análogamente, los niveles externos propuestos ofrecen márgenes de
+0,98 V y 0,69 V hacia B2 en el punto TI de 3,0 V
+($V_{T+\max}=1,92$ V; $V_{T-\min}=0,89$ V). No se atribuyen
+estos márgenes a toda la banda 3,0--3,6 V sin comprobarla.
+
+En OE deshabilitado, la cota de fuga de 4 $\mu$A del SoC más
+2 $\mu$A del traductor produce:
+\begin{equation}
+V_{OE}\leq6\ \mu\mathrm{A}\cdot10165,65\ \Omega
+=0,0610\ \mathrm{V}.
+\end{equation}
+La polarización interna hacia bajo del GPIO ayuda en reinicio. Esta
+cota supone GPIO en alta impedancia; no describe una salida activa.
+
+Para los pull-ups de 10 k$\Omega$, las nuevas cotas térmicas dan
+0,1983 mA y 0,3660 mA a 1,95 V y 3,6 V, respectivamente. La mayor
+disipación por resistencia de este grupo es 1,318 mW. Para el pull-up
+local de 47 k$\Omega$ a 1,95 V resulta 0,0823 mW.
+El presupuesto estático conservador del lado A, sumando tres ramas
+de polarización y reservando 6 $\mu$A para el traductor, es inferior
+a 0,45 mA. La reserva de 1 mA no queda demostrada para todo régimen
+dinámico por este cálculo estático.
+
+\subsubsection{Referencias de soporte y protección}
+Se proponen las siguientes referencias para captura y preparación de
+librerías; esta lista no sustituye la BOM exportada desde Altium.
+\begin{longtable}{L{2.5cm}L{1cm}L{5cm}L{4cm}}
+\toprule Función & Cant. & Referencia & Especificación \\
+\midrule\endhead
+Traductor & 1 & TXU0202DCUR & DCU, ocho contactos. \\
+Pull-up A1 y B2; pull-down OE & 3 & RC0603FR-0710KL & 10 k$\Omega$, 1\,\%, 0603. \\
+Pull-up A2Y & 1 & RC0603FR-0747KL & 47 k$\Omega$, 1\,\%, 0603. \\
+Desacoplo A y B & 2 & C0603C104K3RACTU & 100 nF, 25 V, 10\,\%, X7R, 0603. \\
+Protección primaria TX y RX & 2 & ESD321DPYR & DPY, TVS a GND. \\
+\bottomrule
+\end{longtable}
+
+Las resistencias RC tienen potencia nominal de 0,1 W a 70 $^{\circ}$C;
+su curva de reducción térmica debe asociarse a la librería/BOM al
+liberarla \cite{yageo10k,yageo47k}. Las disipaciones calculadas son
+pequeñas respecto a esa potencia, pero no se afirma que conserve
+0,1 W a cualquier temperatura. Se elige 0603 para facilitar montaje
+e inspección y porque no existe aquí una exigencia de miniaturización
+que justifique un formato menor.
+
+Los condensadores de 25 V sustituyen la especificación inicial de
+10 V sin cambiar su función ni su valor nominal. La tensión de trabajo
+de 3,6 V representa el 14,4\,\% de su tensión nominal. Esto no
+garantiza por sí solo la capacitancia efectiva: tolerancia, temperatura,
+sesgo DC y envejecimiento deben evaluarse. Considerando únicamente
+10\,\% de tolerancia y 15\,\% térmico, la cota sería 76,5 nF;
+no se presenta como mínimo total garantizado \cite{kemet100n}.
+
+Se propone un ESD321DPYR por línea, inmediatamente junto al conector:
+pin 1 a la señal y pin 2 a GND. El pinout corresponde a DPY; no se
+debe reutilizar el de DYA, que tiene numeración diferente.
+El retorno será corto y directo al plano de referencia, evitando
+desviar la descarga a través del SoM. La fuga de trabajo y la baja
+capacitancia son compatibles con el presupuesto estático anterior
+\cite{esd321}. No se conectan estos TVS al riel de 1,8 V.
+
+Esta selección es protección primaria propuesta, no inmunidad ESD
+validada. El fabricante publica una tensión de limitación típica de 6,8 V a
+16 A TLP, mientras que el máximo absoluto de entrada del TXU0202 es
+6,5 V. Por ello no se afirma que el TVS mantenga siempre el pin dentro
+de ese límite. Tampoco se interpreta la diferencia como una prueba
+automática de fallo bajo ESD: son condiciones de ensayo distintas.
+Antes de liberar la protección deben coordinarse las curvas de pulso,
+el circuito secundario si resulta necesario y las inductancias del
+montaje. No se asigna una clasificación IEC al conjunto a partir de
+la clasificación del diodo.
+
+\subsubsection{Paso al esquemático y criterio de cierre}
+Puede iniciarse la captura del bloque en la hoja del computador,
+incluyendo conector, traductor, polarizaciones, desacoplo y puntos de
+prueba de VCCA, VCCB, OE, TX, RX y GND. El conector de actitud no
+transporta potencia de actuadores. El bloque permanece identificado
+como en revisión hasta resolver los márgenes de entrada y la
+coordinación ESD anteriores.
+
+Se revisarán además numeración símbolo--huella, estados de arranque,
+ausencia de conflictos de multiplexación y conectividad de tierras.
+El ERC y la revisión manual se ejecutarán sobre el circuito capturado.
+Comenzar la captura no implica que el informe completo esté terminado:
+las demás interfaces, alimentación de tarjeta, memoria, restricciones
+de fabricación, BOM y costos conservan sus etapas de desarrollo.
 
 \subsection{Necesidades de procesamiento y memoria}
 La cámara de referencia es la XIMEA
@@ -768,7 +888,7 @@ C-07 & Adoptar requisitos de arranque y supervisión. & Definir estados iniciale
 C-08 & Seleccionar almacenamiento independiente de misión. & microSD industrial de 16 GB y escenario de 90 días. Se distinguen capacidad nominal, umbral útil, cuotas y reserva. \\
 C-09 & Definir contratos de módulos externos. & EPS por I2C y controlador ADCS por UART, con dominio externo de 3,3 V. La energía de cámara se entrega externamente; la topología VBUS requiere cierre eléctrico. \\
 C-10 & Asignar buses y conectores de señales. & Contactos X1 para I2C, UART y SPI; conectores GH de tres y cinco contactos para actitud y telemetría EPS. La entrada de potencia se dimensiona por separado. \\
-C-11 & Adaptar la UART de actitud. & TXU0202DCUR, polarización y habilitación controlada. Se exige tolerancia de señales con el módulo externo apagado y se mantienen verificaciones de umbrales, GPIO y protección. \\
+C-11 & Adaptar la UART de actitud. & TXU0202DCUR, polarización y habilitación controlada. Se exige tolerancia de señales con el módulo externo apagado y se mantienen verificaciones de umbrales y protección. \\
 \bottomrule
 \end{tabularx}
 
@@ -1067,5 +1187,20 @@ Consultado el 25 de octubre de 2026.
 Texas Instruments, \emph{SN74AXC2T245}, SCES879A, febrero de 2024.
 \url{https://www.ti.com/lit/ds/symlink/sn74axc2t245.pdf}.
 Consultado el 25 de octubre de 2026.
+\bibitem{imx8mpiec} NXP Semiconductors, \emph{i.MX 8M Plus Applications
+Processor Datasheet for Industrial Products}, IMX8MPIEC, rev. 2,
+febrero de 2023, tabla 26, p. 38. Copia del documento del fabricante:
+\url{https://static6.arrow.com/aropdfconversion/cb2b2904debebb012b3268b4bb38d817cef2cc4d/imx8mpiec.pdf}.
+\bibitem{yageo10k} YAGEO, \emph{RC0603FR-0710KL, specification sheet}.
+\url{https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-0710KL}.
+\bibitem{yageo47k} YAGEO, \emph{RC0603FR-0747KL, specification sheet}.
+\url{https://www.yageogroup.com/component-documentation/download/specsheet/RC0603FR-0747KL}.
+\bibitem{kemet100n} KEMET/YAGEO Group, \emph{C0603C104K3RACTU,
+specification sheet}.
+\url{https://yageogroup.com/component-documentation/download/specsheet/C0603C104K3RACTU?lang=en}.
+\bibitem{esd321} Texas Instruments, \emph{ESD321}, SLVSEN8C, junio de
+2025, secciones 4, 5.4--5.6 y 7.4.
+\url{https://www.ti.com/lit/ds/symlink/esd321.pdf}.
+Fuentes consultadas el 25 de octubre de 2026.
 \end{thebibliography}
 \end{document}

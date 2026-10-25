@@ -19,6 +19,8 @@ El informe vigente incorpora cámara, computador, almacenamiento y el [contrato 
 
 El alcance incluye componentes, cálculos, librerías, esquemático jerárquico, restricciones, validación eléctrica y costos de componentes para 10, 100 y 1000 tarjetas. El enrutamiento, los archivos de fabricación y el software de vuelo quedan fuera de esta práctica.
 
+La UART de actitud incluye una versión para captura inicial: GPIO X1.206, alimentación X1.214 y referencias de soporte. El informe distingue los márgenes calculados de los pendientes: no se ha cerrado la compatibilidad de entrada del TXU0202 en toda la envolvente ni la coordinación ESD. El circuito no se declara validado.
+
 ## Organización
 
 | Carpeta | Contenido |
