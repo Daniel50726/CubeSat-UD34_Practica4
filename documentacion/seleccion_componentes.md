@@ -46,7 +46,19 @@ El computador deberá admitir un anfitrión USB3 y software de adquisición comp
 - Alimentación: rama exclusiva de 5 V ±5 % en pines VCC y capacidad de 3 A, dimensionada a partir de la envolvente de pico de 12,5 W de la familia. No equivale a consumo permanente ni al requerimiento total de la PCB.
 - Trazabilidad: IF-07/08/09; ET-02/03/04/07/08; revisión de los presupuestos heredados.
 
-La evaluación, las fuentes primarias y sus archivos locales se encuentran en `evaluacion_computador_verdin.md`. Los cálculos se reproducen con `calculos/verificar_computador.py`; su integración al libro XLSX está pendiente. La referencia se adopta para captura esquemática; no se ha confirmado inventario, precio ni aptitud orbital. Los circuitos auxiliares, conectores, almacenamiento externo, disipación y pinout completo se seleccionarán en las siguientes etapas.
+La evaluación, las fuentes primarias y sus archivos locales se encuentran en `evaluacion_computador_verdin.md`. Los cálculos se reproducen con `calculos/verificar_computador.py` y están integrados en el libro XLSX, Calculos!A62:D72. La referencia se adopta para captura esquemática; no se ha confirmado inventario, precio ni aptitud orbital. Los circuitos auxiliares, conectores, disipación y pinout completo se seleccionarán en las siguientes etapas. El almacenamiento externo se adopta en SEL-003.
+
+## SEL-003 — Almacenamiento independiente de misión
+
+- Fecha de aprobación: 2026-10-25.
+- Referencia: Kingston SDCIT2/16GBSP, microSD industrial de 16 GB nominales sin adaptador SD.
+- Ubicación: zócalo de la PCB central y de comunicaciones, separado del SoM y su eMMC de arranque.
+- Interfaz: SD_1/USDHC2, cuatro bits, modo inicial Default Speed de 25 MHz y señalización de 3,3 V.
+- Capacidad: exigir al menos 15 GB útiles después del formato. El escenario aprobado de 90 días requiere 12,2016064 GB incluyendo 1 GB inicial y 3 GB libres de reserva.
+- Cuotas: diez cuadros RAW16/día, resultados hasta otro volumen RAW y 2 MB/día conjuntos de metadatos, telemetría, índices y eventos. Son supuestos aprobados que deben cumplirse o recalcularse.
+- Justificación y sensibilidad: `propuesta_almacenamiento.md`; fórmulas en el libro XLSX y cálculo independiente en `calculos/verificar_almacenamiento.py`.
+- Fuentes: SRC-009, SRC-012 y SRC-013; trazabilidad ET-04, IF-09 y PCB-06/07/08.
+- Límites: corriente máxima y arranque no publicados en la ficha consultada; no se han elegido protección, zócalo ni interruptor. Capacidad útil, tiempos de escritura y retención mecánica requieren verificación. No se acredita redundancia ni aptitud orbital.
 
 ## Método para las siguientes selecciones
 

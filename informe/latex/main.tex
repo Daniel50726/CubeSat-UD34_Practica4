@@ -148,7 +148,7 @@ Las especificaciones ET-01 a ET-08 proceden de la práctica 3 \cite{lab3}. Se di
 ET-01 & Batería 2S: 7,4 V nominal; 6,0--8,4 V. & Dato de contexto de potencia. No se conectará directamente a la lógica por asumir este rango; falta definir qué tensiones reguladas entrega la tarjeta de potencia. \\
 ET-02 & Distribución de 3,3 V y 5 V, con tolerancia de $\pm5\,\%$. & Conservar como base preliminar y verificar los extremos 3,135--3,465 V y 4,75--5,25 V frente a los dispositivos seleccionados. Alimentación y nivel lógico se comprobarán por separado. \\
 ET-03 & PCB de hasta $90\times90$ mm. & Aplicar a la PCB integrada completa. No asignar ese espacio por separado a central y comunicaciones. Confirmar con el equipo las zonas de conectores, fijaciones y altura. \\
-ET-04 & Almacenamiento no volátil $\geq16$ GB. & Conservar como requisito heredado mientras se revisa su fundamento. No confundir capacidad de almacenamiento con RAM necesaria para recibir y transferir imágenes. \\
+ET-04 & Almacenamiento no volátil $\geq16$ GB. & Se adopta microSD de 16 GB nominales; exigir al menos 15 GB útiles tras formato. La retención de 90 días requiere 12,202 GB bajo las cuotas definidas. \\
 ET-05 & Enlace preliminar 435--438 MHz. & Se conserva como antecedente para revisión en comunicaciones; no constituye por sí solo autorización de operación ni selección definitiva. \\
 ET-06 & Tasa base $\geq9600$ bps. & Es un límite inferior preliminar, no una demostración de cumplimiento de la descarga diaria. Debe coordinarse con el volumen de datos y los contactos. \\
 ET-07 & Operación entre $-40$ y $+85\,^{\circ}\mathrm{C}$. & Revisar contra condiciones de operación recomendadas, no máximos absolutos. Comprobar el rango en cada dispositivo de la PCB, incluido el almacenamiento. La cámara externa se evaluará por separado; cualquier relajación del requisito deberá quedar justificada. \\
@@ -167,7 +167,7 @@ IF-01, IF-05 & Potencia hacia central y memoria & Entrada regulada y retorno. 3,
 IF-03 & Potencia hacia radio & Alimentación del bloque de comunicaciones dentro de la misma PCB. & Consumo de transmisión y asignación de redes. \\
 IF-07 & Central hacia cámara & Configuración, captura y estado según cámara seleccionada. & Protocolo, niveles y señales de control. \\
 IF-08 & Cámara hacia central & Transferencia de imágenes; interfaz de mayor impacto en selección del procesador. & Bus, tasa de pico, temporización y formato. \\
-IF-09 & Central y almacenamiento & Bus interno a memoria no volátil, seleccionado según el computador y el dispositivo de almacenamiento; SPI y SDIO son ejemplos preliminares. & Dispositivo, capacidad y escritura sostenida. \\
+IF-09 & Central y almacenamiento & Bus SD nativo de cuatro bits hacia microSD Kingston de misión; modo inicial 25 MHz y 3,3 V. & Circuito de alimentación, zócalo y escritura sostenida por verificar. \\
 IF-10, IF-11 & Central y comunicaciones & Bus interno bidireccional; reservar conceptualmente control, estado e interrupción. & SPI/UART u otro bus, señales y carga de datos. \\
 IF-14, IF-15 & Central y actitud & Mediciones y comandos hacia sensores/controladores externos. & Buses, número de señales y ubicación de las etapas de manejo. \\
 IF-16 & Potencia hacia central & Telemetría y alertas; bus digital y/o señales discretas por acordar. & Protocolo, direcciones, niveles y estados de falla. \\
@@ -395,6 +395,7 @@ C-04 & Revisar presupuesto de datos frente al enlace. & 9600 bit/s no satisface 
 C-05 & Precisar RNF-03 según la interfaz elegida. & Control de impedancia y pares diferenciales solo se aplican cuando la interfaz y sus condiciones lo requieren. \\
 C-06 & Adoptar cámara XIMEA y computador modular Verdin. & Se separa el almacenamiento de misión de la RAM y memoria de arranque. Se revisan potencia e interfaces; la compatibilidad del SDK en el módulo permanece como hipótesis de integración. \\
 C-07 & Adoptar requisitos de arranque y supervisión. & Definir estados iniciales y respuesta ante pérdida de alimentación; los circuitos concretos se seleccionarán posteriormente. \\
+C-08 & Seleccionar almacenamiento independiente de misión. & microSD industrial de 16 GB y escenario de 90 días. Se distinguen capacidad nominal, umbral útil, cuotas y reserva. \\
 \bottomrule
 \end{tabularx}
 
@@ -508,10 +509,133 @@ USB de cámara y adaptación de niveles. Muchas señales digitales usan
 1,8 V \cite{verdinguide}; cada interfaz deberá comprobarse antes de
 conectarla a dispositivos de 3,3 V. VBUS de cámara se suministrará
 mediante una rama protegida, no desde una señal lógica del módulo.
-El almacenamiento externo y la interfaz digital de comunicaciones
-se seleccionarán sin conflictos de multiplexación.
+El almacenamiento externo se conecta al bus SD dedicado. La interfaz
+digital de comunicaciones se seleccionará sin conflictos de multiplexación.
 
-\begin{thebibliography}{9}
+\subsection{Almacenamiento independiente de misión}
+
+Se selecciona como referencia de diseño la microSD industrial Kingston
+\texttt{SDCIT2/16GBSP}, de 16 GB nominales, instalada en un zócalo de la
+PCB. La presentación SP no incluye adaptador SD. Su alimentación
+nominal es de 3,3 V y su rango publicado de operación es de
+$-40$ a $+85\,^{\circ}\mathrm{C}$ \cite{kingstonsdcit2}.
+La memoria conserva imágenes, telemetría y resultados; la eMMC del
+Verdin permanece dedicada al arranque, sistema operativo y aplicación.
+
+Se prioriza microSD por la disponibilidad de una interfaz SD externa
+en el computador y por permitir sustitución durante mantenimiento.
+Una eMMC adicional soldada evitaría contactos extraíbles, pero requiere
+su propia selección de encapsulado y circuito. La carga de datos
+considerada no justifica incorporar un SSD con interfaz PCIe.
+Esta elección exige asegurar la retención mecánica de la tarjeta y
+no constituye una validación para operación orbital.
+
+\subsubsection{Escenario de retención y justificación de capacidad}
+Se establece una contingencia de 90 días sin descarga para dimensionar
+la memoria. Es un supuesto de diseño, no un resultado orbital ni una
+exigencia de la guía. Se conserva la adquisición de diez cuadros RAW16
+diarios y se asignan las siguientes cuotas y reservas:
+\begin{itemize}
+\item Imágenes originales: $44{,}56448$ MB/día, según el cálculo de cámara.
+\item Resultados de procesamiento: hasta un volumen adicional igual al
+RAW. Es una cuota de almacenamiento; no define un algoritmo ni una
+copia redundante de los originales.
+\item Metadatos, telemetría, índices y eventos: cuota conjunta de
+2 MB/día. No es una medición ni sustituye el dimensionamiento posterior
+de registros y comunicaciones.
+\item Ocupación inicial: máximo 1 GB al comenzar la contingencia.
+La gestión de descarga y depuración deberá mantener esa condición;
+si no se cumple, se recalculará la autonomía disponible.
+\item Reserva libre: 3 GB para operación y contingencias, adicional
+a los datos producidos durante el intervalo.
+\end{itemize}
+Se emplean unidades decimales: $1\ \mathrm{MB}=10^6$ bytes y
+$1\ \mathrm{GB}=10^9$ bytes. La generación presupuestada es
+\begin{equation}
+\dot D_{\mathrm{pres}}=44{,}56448+44{,}56448+2
+=91{,}12896\ \mathrm{MB/día}.
+\end{equation}
+Aplicando el criterio de retención definido previamente:
+\begin{equation}
+C_{\mathrm{req}}=1+\frac{91{,}12896(90)}{1000}+3
+=12{,}2016064\ \mathrm{GB}.
+\end{equation}
+Se exige comprobar al menos 15 GB útiles después del formato y de
+la configuración. Este valor es un umbral de aceptación, no una
+capacidad medida. El fabricante advierte que parte de la capacidad
+nominal no está disponible para datos \cite{kingstonsdcit2}.
+Con dicho umbral, el margen adicional es
+\begin{equation}
+\Delta C=15-12{,}2016064=2{,}7983936\ \mathrm{GB}.
+\end{equation}
+Los 3 GB de reserva ya están incluidos en $C_{\mathrm{req}}$ y no se
+suman nuevamente. La sensibilidad al período sin descarga es:
+\begin{center}
+\begin{tabular}{rrl}
+\toprule
+Retención (días) & Capacidad útil requerida (GB) & Frente a 15 GB útiles \\
+\midrule
+30 & 6,734 & Cumple el escenario \\
+90 & 12,202 & Cumple el escenario \\
+180 & 20,403 & No cumple \\
+\bottomrule
+\end{tabular}
+\end{center}
+Así se conserva ET-04, condicionado al cumplimiento de las cuotas y
+del umbral útil. Si cambian los cuadros diarios, resultados, registros
+o datos acumulados, se actualiza el cálculo. Más memoria no resuelve
+una descarga permanentemente inferior a la generación.
+
+\subsubsection{Interfaz y objetivo de escritura}
+Se utiliza la interfaz externa \texttt{SD\_1}/USDHC2 del Verdin,
+independiente de su eMMC interna. Se adopta inicialmente el modo
+\emph{Default Speed}, cuatro bits a 25 MHz con señalización de 3,3 V
+\cite{verdinds}. Esta elección limita las exigencias de velocidad y
+evita depender de la conmutación UHS a 1,8 V. Toradex documenta el
+acceso a tarjetas SD desde Linux en este módulo \cite{toradexsd}.
+
+El techo bruto del bus es
+\begin{equation}
+R_{\mathrm{bus}}=\frac{4(25\times10^6)}{8}
+=12{,}5\ \mathrm{MB/s}.
+\end{equation}
+No equivale a la velocidad sostenida del archivo. Como objetivo se
+plantea escribir un RAW y un resultado de igual tamaño en hasta 2 s:
+\begin{equation}
+R_{\mathrm{objetivo}}=\frac{2(4\,456\,448)}{2}
+=4{,}456448\ \mathrm{MB/s}.
+\end{equation}
+El cumplimiento deberá verificarse con el sistema de archivos y la
+configuración elegidos, incluyendo bloqueos y ráfagas. No se infiere
+del máximo comercial de escritura de la tarjeta.
+
+\subsubsection{Alimentación e integridad de datos}
+La rama de 3,3 V se dimensionará fuera de los 3 A reservados al SoM.
+La ficha consultada no publica corriente máxima ni de arranque; por
+ello la potencia máxima permanece sin valor, en vez de asumir cero.
+El interruptor de alimentación deberá reconocer la habilitación
+\texttt{SD\_1\_PWR\_EN}, que opera a 1,8 V aunque el bus SD use
+3,3 V \cite{verdinds}. La elección del zócalo, desacoplo, protección
+ESD e interruptor se completará con esos límites.
+
+Se deberá evitar el corte de energía con escrituras activas, cerrar
+y sincronizar archivos y comprobar su integridad. Las funciones de
+protección publicadas por Kingston no acreditan por sí solas la
+conservación del último archivo ni la consistencia del sistema de
+archivos ante cualquier interrupción. Guardar RAW y resultados en
+una misma tarjeta tampoco proporciona redundancia frente a su fallo.
+
+La escritura lógica anual presupuestada es
+$91{,}12896(365)/1000=33{,}2620704$ GB. No equivale a escritura física
+de NAND; faltan amplificación y operaciones internas. No se atribuye
+a la referencia de 16 GB el TBW máximo de la familia, que el fabricante
+asocia a su capacidad mayor \cite{kingstonsdcit2}.
+
+Las entradas, fórmulas, escenarios y restricciones correspondientes
+se mantienen en el libro de cálculos, con su procedencia y condición
+de dato publicado, supuesto o verificación pendiente.
+
+\begin{thebibliography}{99}
 \bibitem{guia4} Departamento de Ingeniería Electrónica, Universidad de Antioquia. \emph{Práctica 4: Diseño Electrónico y Captura Esquemática}. Archivo suministrado: \texttt{lab004\_2598575\_20262.pdf}. Véanse descripción, procedimiento 1 y entregables.
 \bibitem{lab3} D. F. Yépez Taimal y S. Cáceres Vásquez. \emph{Práctica 3: Requisitos, especificaciones y arquitectura electrónica del CubeSat UD34}. 28 de septiembre de 2026. Archivo suministrado: \texttt{Diseño\_Lab3.pdf}. Véanse secciones 2--4 y 9--10; cuadros 16--19.
 
@@ -544,6 +668,15 @@ Consulta: 24 de octubre de 2026.
 Versión 1.2, 15 de septiembre de 2022. Sección 3, especialmente 3.1.
 \url{https://docs.toradex.com/108140-verdin-carrier-board-design-guide.pdf}.
 Consulta: 24 de octubre de 2026.
+
+\bibitem{kingstonsdcit2} Kingston. \emph{Industrial microSD Memory Card},
+serie SDCIT2. Ficha de dos páginas; identificador MKD-02122026.
+\url{https://www.kingston.com/datasheets/sdcit2_en.pdf}.
+Consulta: 25 de octubre de 2026.
+
+\bibitem{toradexsd} Toradex. \emph{SD/MMC Card (Linux)}.
+\url{https://developer.toradex.com/linux-bsp/application-development/peripheral-access/sdmmc-card-linux/}.
+Consulta: 25 de octubre de 2026.
 
 \end{thebibliography}
 \end{document}
