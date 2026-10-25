@@ -1,10 +1,10 @@
 # Interfaz de cámara — revisión 01
 
-Estado: definición funcional parcial. Cámara de referencia: XIMEA MQ022HG-IM-SM5X5-7NIR2. Fuente: SRC-001 y SRC-002. Fecha: 2026-10-24.
+Estado: definición funcional parcial. Cámara de referencia: XIMEA MQ022HG-IM-SM5X5-7NIR2. Fuente: SRC-001 y SRC-002. Fecha inicial: 2026-10-24; actualizado el 2026-10-25 con SEL-002.
 
 | Interfaz | Definición | Pendiente para cerrar |
 | --- | --- | --- |
-| IF-07 | Control de cámara mediante interfaz USB3 y software compatible | Computador anfitrión, SDK y secuencia de configuración |
+| IF-07 | Control de cámara mediante USB_2 del Verdin 00631101 como anfitrión USB3 | SDK en esta plataforma (hipótesis de integración) y secuencia de configuración |
 | IF-08 | Recepción de cuadros brutos por USB3; escenario RAW16 | Tasa efectiva, buffers, relleno, metadatos y tiempos |
 | IF-02 | Cámara alimentada a través de su interfaz USB3 | Origen del riel, tensión admisible, corriente de arranque y máxima, protección |
 | J_CAM | Puerto de la PCB y cable hacia Micro-B USB3 de cámara | Referencia del conector del lado PCB, pinout y envolvente |

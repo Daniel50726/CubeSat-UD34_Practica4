@@ -11,11 +11,11 @@ Docente: Maria Katherine Plazas Olaya.
 
 ## Estado del proyecto
 
-La arquitectura toma como antecedente la práctica 3. Se ha seleccionado la XIMEA MQ022HG-IM-SM5X5-7NIR2 como cámara de referencia eléctrica académica. La óptica y la capacidad de observar lotes a 550 km siguen sin validación. El computador, los demás componentes y el esquemático permanecen en desarrollo.
+La arquitectura toma como antecedente la práctica 3. Se ha seleccionado la XIMEA MQ022HG-IM-SM5X5-7NIR2 como cámara de referencia eléctrica académica y el Verdin iMX8M Plus Quad 4GB IT V1.1B (00631101) como computador de diseño. La compatibilidad del SDK de XIMEA en el Verdin permanece como hipótesis explícita de integración. La óptica y la capacidad de observar lotes a 550 km siguen sin validación. El almacenamiento externo, los demás componentes y el esquemático permanecen en desarrollo.
 
 Primer paquete técnico: `documentacion/seleccion_componentes.md`, `documentacion/acuerdos_interfaces/IF_CAM_revision_01.md`, el manual en `documentacion/hojas_de_datos/` y `calculos/calculos_y_restricciones.xlsx`. El libro contiene entradas con fuentes, cálculos editables y la matriz inicial de restricciones. Los valores desconocidos se indican como pendientes.
 
-El informe vigente ya incorpora la selección de la cámara. La BOM exportada, las librerías y el ERC se completarán cuando exista el diseño de Altium.
+El informe vigente incorpora la selección de cámara y computador, con una rama dedicada de 5 V y 3 A para el SoM. Esta capacidad no es el consumo permanente ni el presupuesto total de la PCB. La evaluación está en `documentacion/evaluacion_computador_verdin.md` y sus cálculos reproducibles en `calculos/verificar_computador.py`; su traslado al libro de cálculo está pendiente. La BOM exportada, las librerías y el ERC se completarán cuando exista el diseño de Altium.
 
 El alcance incluye componentes, cálculos, librerías, esquemático jerárquico, restricciones, validación eléctrica y costos de componentes para 10, 100 y 1000 tarjetas. El enrutamiento, los archivos de fabricación y el software de vuelo quedan fuera de esta práctica.
 
@@ -46,7 +46,7 @@ Cuando exista el proyecto, abrir su archivo `.PrjPcb` desde Altium y comprobar q
 
 ## Compilar el informe
 
-El archivo de trabajo es `informe/latex/main.tex`, actualizado con la versión editada por el autor y las citas a las prácticas 3 y 4 restauradas. Las sugerencias de LaTeX se guardan únicamente en la carpeta local `informe/fragmentos/`, excluida de Git, para su integración manual. Los borradores antiguos tampoco forman parte de la versión a publicar.
+El archivo de trabajo es `informe/latex/main.tex`, que reúne los cambios aprobados por el autor para la entrega. Las sugerencias de LaTeX se guardan únicamente en la carpeta local `informe/fragmentos/`, excluida de Git. El flujo acordado consiste en revisar primero la propuesta local, obtener la aprobación del autor y después integrarla al informe y publicarla en GitHub. Los borradores antiguos tampoco forman parte de la versión a publicar.
 
 En Overleaf, cargar `informe/latex/main.tex` como documento principal y usar pdfLaTeX. Con una distribución local de LaTeX, ejecutar desde `informe/latex/`:
 

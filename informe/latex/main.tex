@@ -196,27 +196,21 @@ Sin conector central--radio & Bus digital y señales auxiliares en redes interna
 \end{tabularx}
 
 \subsection{Necesidades de procesamiento y memoria}
-Se adopta como criterio de diseño la selección de una cámara espectral
-industrial compacta para la implementación académica de la carga útil.
-Su selección deberá verificar las bandas espectrales, la interfaz de
-datos, el consumo y la compatibilidad dimensional del conjunto de cámara
-y óptica con el formato 1U. Esta elección no implica demostrar aptitud
-para operación espacial.
+La cámara de referencia es la XIMEA
+\texttt{MQ022HG-IM-SM5X5-7NIR2}. Se adopta para el diseño académico un
+módulo Verdin iMX8M Plus Quad 4GB IT como computador principal, con RAM
+y memoria de arranque incorporadas. El almacenamiento persistente de
+imágenes, telemetría y resultados se implementa por separado. Los
+archivos se conservan en ese almacenamiento y se cargan en RAM cuando
+se procesan. La selección se desarrolla en la sección de componentes.
 
-La arquitectura del computador de a bordo se determinará a partir de los
-requisitos de la cámara y de las funciones de almacenamiento,
-comunicación y supervisión del satélite. Se evaluarán tanto
-microcontroladores como procesadores de aplicaciones o módulos de
-cómputo, considerando la compatibilidad de sus interfaces, el soporte de
-software disponible, la memoria y el consumo. Este criterio evita
-restringir anticipadamente el diseño a un microcontrolador que pudiera
-resultar incompatible con la transferencia de imágenes.
-
-Se conserva un computador principal como coordinador del sistema.
-Su implementación definitiva y la referencia de la cámara se
-establecerán mediante una comparación técnica. Los presupuestos
-preliminares de potencia, espacio y datos se actualizarán con las
-características de los dispositivos seleccionados.
+El alcance de cómputo considerado comprende adquisición RAW16, gestión
+de archivos y metadatos, preparación de datos para comunicaciones y
+supervisión de estados. No se presupone un algoritmo de inteligencia
+artificial ni se acredita procesamiento espectral avanzado o desempeño
+de control en tiempo real. Sus recursos y plazos deberán comprobarse
+si esas funciones se incorporan. Los presupuestos heredados se revisan
+con las características de los dispositivos elegidos.
 
 
 La evaluación del procesador deberá comprobar:
@@ -321,7 +315,7 @@ considerar además la sobrecarga del protocolo y el margen necesario
 para las condiciones de operación previstas. Si la capacidad de descarga
 resulta insuficiente, se revisarán conjuntamente la frecuencia de
 adquisición, el volumen conservado por captura y la capacidad del enlace.
-La selección definitiva del computador y del radio deberá ser compatible
+El computador seleccionado y la elección del radio deberán ser compatibles
 con este presupuesto y con las tasas de transferencia internas.
 
 \subsection{Alimentación y presupuesto de consumo}
@@ -332,6 +326,16 @@ I_{\mathrm{nom}}=\frac{0,150}{3,3}\approx45,5\ \mathrm{mA},\qquad
 I_{\mathrm{max}}=\frac{0,300}{3,3}\approx90,9\ \mathrm{mA}.
 \end{equation}
 Estas corrientes son equivalencias de las estimaciones heredadas y no dimensionan todavía el conector ni constituyen un límite comprobado. Dado que la selección admite un procesador de aplicaciones o un módulo de cómputo, el presupuesto de 300 mW no se adopta como límite validado de la solución. El supuesto de un solo riel excluye pérdidas y debe sustituirse por el reparto real de consumos. La memoria puede presentar picos de escritura que no estén representados en el promedio heredado.
+
+El subsistema externo de potencia se modela como una fuente que satisface
+las condiciones de entrada especificadas por este diseño. La estimación
+global heredada de 5 W no se impone como límite del diseño actualizado.
+Para la rama dedicada al computador se establece una capacidad de
+suministro de 3 A a 5 V, manteniendo una tolerancia de
+$\pm5\,\%$ en los pines del módulo. Esta capacidad no representa el
+consumo permanente ni incluye cámara, almacenamiento externo,
+comunicaciones o auxiliares. El requerimiento total de la PCB se
+obtendrá al completar esos bloques y sus pérdidas.
 
 Para cada riel se calculará la corriente máxima aplicable sumando dispositivos activos en cada modo y sus circuitos auxiliares. Si existe conversión local, su corriente de entrada se estimará mediante
 \begin{equation}
@@ -389,7 +393,7 @@ C-02 & Corregir método de verificación de ET-07. & Usar condiciones de operaci
 C-03 & Complementar ET-08 con recursos y tasas. & La frecuencia no demuestra compatibilidad de cámara, memoria y periféricos. \\
 C-04 & Revisar presupuesto de datos frente al enlace. & 9600 bit/s no satisface el volumen diario supuesto. Puede afectar adquisición, almacenamiento y comunicaciones. \\
 C-05 & Precisar RNF-03 según la interfaz elegida. & Control de impedancia y pares diferenciales solo se aplican cuando la interfaz y sus condiciones lo requieren. \\
-C-06 & Evaluar una cámara espectral industrial compacta y un computador compatible. & La referencia final permanece abierta; la implementación académica requiere verificar cámara, óptica, recursos y presupuesto conjunto. \\
+C-06 & Adoptar cámara XIMEA y computador modular Verdin. & Se separa el almacenamiento de misión de la RAM y memoria de arranque. Se revisan potencia e interfaces; la compatibilidad del SDK en el módulo permanece como hipótesis de integración. \\
 C-07 & Adoptar requisitos de arranque y supervisión. & Definir estados iniciales y respuesta ante pérdida de alimentación; los circuitos concretos se seleccionarán posteriormente. \\
 \bottomrule
 \end{tabularx}
@@ -425,6 +429,88 @@ telemetría, sobrecarga del protocolo y retransmisiones. El tamaño real
 del archivo deberá comprobarse con el formato de adquisición.
 
 
+\subsection{Computador de a bordo e interfaz de alimentación}
+
+Se adopta como referencia de diseño el Toradex Verdin iMX8M Plus Quad
+4GB IT V1.1B, número de producto \texttt{00631101}. El fabricante
+documenta esta referencia como reemplazo de la revisión V1.1A
+\cite{verdinpcn}. Se elige la variante sin Wi-Fi/Bluetooth porque la
+comunicación de misión corresponde al bloque de radio de la PCB.
+
+El módulo integra 4 GB de RAM y 32 GB de eMMC; esta última se reserva
+para arranque, sistema operativo y aplicación. Su puerto
+\texttt{USB\_2} ofrece USB 3.1 Gen 1 en función anfitrión y se reserva
+para la cámara. El nombre del puerto no indica velocidad USB 2.0.
+\texttt{USB\_1} se reserva para recuperación. El rango industrial
+es de $-40$ a $+85\,^{\circ}\mathrm{C}$, sujeto a las condiciones de
+disipación \cite{verdinds}.
+
+\subsubsection{Recursos y compatibilidad de software}
+Dos buffers para cuadros RAW16 completos requieren
+\begin{equation}
+M_{\mathrm{buffers}}=2(2048\times1088\times2)
+=8\,912\,896\ \mathrm{bytes}.
+\end{equation}
+Los 4 GB constituyen una configuración de catálogo con margen; no se
+deducen como mínimo necesario de este cálculo. El uso total de RAM
+incluye sistema operativo, SDK, copias y operaciones de procesamiento.
+
+Se considera Linux ARM64 mediante un BSP de Toradex compatible con la
+revisión V1.1B. Para la rama BSP 6, el aviso de cambio establece soporte
+desde 6.2.0 \cite{verdinpcn}. Esta condición no demuestra por sí sola
+compatibilidad con xiAPI: XIMEA ofrece software Linux ARM, pero no
+enumera Verdin entre sus plataformas probadas \cite{ximealinux}.
+El funcionamiento de esta combinación se mantiene como hipótesis
+explícita de integración del diseño académico. No se ha ejecutado una
+prueba ni verificado el conjunto de dependencias del SDK. La validación
+posterior deberá fijar versiones y comprobar apertura de la cámara,
+captura RAW16, integridad de archivos, tiempos y uso de memoria.
+
+\subsubsection{Dimensionamiento de la rama de potencia}
+La entrada recomendada del módulo admite de 3,135 a 5,5 V
+\cite{verdinds}. Se adopta un riel de 5 V por coherencia con ET-02;
+su intervalo de $\pm5\,\%$, de 4,75 a 5,25 V, está contenido en ese
+rango. La tensión debe garantizarse en los pines VCC, considerando
+las caídas de la distribución y protección.
+
+La guía de familia establece una envolvente de 8,25 W sostenidos y
+12,5 W de pico, y recomienda dimensionar la fuente para el pico
+\cite{verdinguide}. Se utiliza esa envolvente como criterio de diseño,
+sin atribuirla al consumo medido de la aplicación. En el extremo
+inferior de tensión:
+\begin{align}
+I_{\mathrm{sost}}&=\frac{8{,}25}{4{,}75}
+\approx1{,}737\ \mathrm{A},\\
+I_{\mathrm{pico}}&=\frac{12{,}5}{4{,}75}
+\approx2{,}632\ \mathrm{A}.
+\end{align}
+Se especifica una capacidad de 3 A para la rama del SoM. A 4,75 V
+puede entregar 14,25 W, un margen del 14\,\% sobre la envolvente de
+pico. La capacidad nominal de 15 W a 5 V no equivale al consumo
+permanente del módulo. La cámara y los demás dispositivos requieren
+presupuestos adicionales; la eMMC y RAM internas no se suman de nuevo.
+
+La corriente especificada no sustituye la comprobación de rampa,
+transitorios, desacoplo y secuencia de encendido. El diseño de la rama
+debe satisfacer la gestión de potencia de la familia
+\cite{verdinguide}. La energía se calculará a partir de consumos y
+duraciones por modo, sin sustituirlos por la capacidad de la fuente.
+
+\subsubsection{Integración en la PCB}
+El módulo tiene una proyección de $69{,}6\times35$ mm
+\cite{verdinds}. Su área proyectada es 2436 mm$^2$, equivalente al
+30,07\,\% de una PCB de $90\times90$ mm. Esta comparación no incluye
+zócalo, fijaciones, disipación ni separaciones, por lo que no demuestra
+el encaje del conjunto completo.
+
+Se reservarán circuitos para alimentación supervisada, recuperación,
+USB de cámara y adaptación de niveles. Muchas señales digitales usan
+1,8 V \cite{verdinguide}; cada interfaz deberá comprobarse antes de
+conectarla a dispositivos de 3,3 V. VBUS de cámara se suministrará
+mediante una rama protegida, no desde una señal lógica del módulo.
+El almacenamiento externo y la interfaz digital de comunicaciones
+se seleccionarán sin conflictos de multiplexación.
+
 \begin{thebibliography}{9}
 \bibitem{guia4} Departamento de Ingeniería Electrónica, Universidad de Antioquia. \emph{Práctica 4: Diseño Electrónico y Captura Esquemática}. Archivo suministrado: \texttt{lab004\_2598575\_20262.pdf}. Véanse descripción, procedimiento 1 y entregables.
 \bibitem{lab3} D. F. Yépez Taimal y S. Cáceres Vásquez. \emph{Práctica 3: Requisitos, especificaciones y arquitectura electrónica del CubeSat UD34}. 28 de septiembre de 2026. Archivo suministrado: \texttt{Diseño\_Lab3.pdf}. Véanse secciones 2--4 y 9--10; cuadros 16--19.
@@ -441,6 +527,22 @@ Consulta: 24 de octubre de 2026.
 
 \bibitem{ximealinux} XIMEA. \emph{XIMEA Linux Software Package}, Supported platforms.
 \url{https://www.ximea.com/support/wiki/apis/XIMEA_Linux_Software_Package}.
+Consulta: 24 de octubre de 2026.
+
+\bibitem{verdinds} Toradex. \emph{Verdin iMX8M Plus V1.1 Datasheet}.
+Revisión documental 1.8, 22 de junio de 2026. Tablas 7, 30 y 72;
+secciones 5.5 y 8.5--8.6.
+\url{https://docs.toradex.com/116795-verdin_imx8mp_datasheet.pdf}.
+Consulta: 24 de octubre de 2026.
+
+\bibitem{verdinpcn} Toradex. \emph{PCN: 0063 Verdin iMX8M Plus Quad
+4GB IT V1.1A to V1.1B}. Actualizado el 12 de diciembre de 2023.
+\url{https://docs.toradex.com/114344-pcn-0063-v11a-v11b-20231127.pdf}.
+Consulta: 24 de octubre de 2026.
+
+\bibitem{verdinguide} Toradex. \emph{Verdin Carrier Board Design Guide}.
+Versión 1.2, 15 de septiembre de 2022. Sección 3, especialmente 3.1.
+\url{https://docs.toradex.com/108140-verdin-carrier-board-design-guide.pdf}.
 Consulta: 24 de octubre de 2026.
 
 \end{thebibliography}

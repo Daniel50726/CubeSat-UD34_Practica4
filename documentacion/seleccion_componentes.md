@@ -29,11 +29,24 @@ El computador deberá admitir un anfitrión USB3 y software de adquisición comp
 
 ### Pendientes de cierre
 
-1. Seleccionar el computador y comprobar compatibilidad de SDK, controlador USB y memoria.
+1. Comprobar compatibilidad de SDK, controlador USB y memoria en el computador adoptado en SEL-002.
 2. Definir alimentación USB, tolerancia, corriente máxima, arranque y secuencia de encendido.
 3. Comprobar formato, relleno, metadatos, tiempo por captura y transferencia efectiva.
 4. Elegir óptica y comprobar campo de visión, muestreo, montaje y condiciones térmicas.
 5. Dimensionar telemetría, enlace y retención de datos.
+
+## SEL-002 — Computador de a bordo
+
+- Fecha de aprobación: 2026-10-25.
+- Fabricante: Toradex.
+- Referencia de diseño: Verdin iMX8M Plus Quad 4GB IT V1.1B, 00631101.
+- Estado: selección de diseño académico aprobada. Compatibilidad de xiAPI en esta plataforma asumida como hipótesis de integración; no validada experimentalmente.
+- Arquitectura: RAM y eMMC de arranque dentro del SoM; almacenamiento de misión independiente.
+- Interfaz de cámara: puerto USB_2 como anfitrión USB 3.1 Gen 1; USB_1 reservado para recuperación.
+- Alimentación: rama exclusiva de 5 V ±5 % en pines VCC y capacidad de 3 A, dimensionada a partir de la envolvente de pico de 12,5 W de la familia. No equivale a consumo permanente ni al requerimiento total de la PCB.
+- Trazabilidad: IF-07/08/09; ET-02/03/04/07/08; revisión de los presupuestos heredados.
+
+La evaluación, las fuentes primarias y sus archivos locales se encuentran en `evaluacion_computador_verdin.md`. Los cálculos se reproducen con `calculos/verificar_computador.py`; su integración al libro XLSX está pendiente. La referencia se adopta para captura esquemática; no se ha confirmado inventario, precio ni aptitud orbital. Los circuitos auxiliares, conectores, almacenamiento externo, disipación y pinout completo se seleccionarán en las siguientes etapas.
 
 ## Método para las siguientes selecciones
 
