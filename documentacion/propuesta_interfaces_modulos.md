@@ -48,3 +48,7 @@ Los conectores hacia módulos externos se colocarán en la hoja del computador s
 ## Fuente primaria
 
 Toradex, Verdin iMX8M Plus V1.1 Datasheet, secciones 5.5, 5.7, 5.10, 5.11 y 5.14: https://docs.toradex.com/116795-verdin_imx8mp_datasheet.pdf. Documento local registrado como SRC-009. Las velocidades EPS/ADCS, el dominio externo de 3,3 V y las señales discretas son decisiones del diseño, no requisitos del fabricante de un módulo externo seleccionado.
+
+## Adaptación UART aprobada — 2026-10-25
+
+Se adopta SEL-004: TXU0202DCUR, A=1,8 V y B=3,3 V local. Pin 5 desde X1.131; pin 8 hacia J_ADCS.2; pin 1 desde J_ADCS.3; pin 4 hacia X1.129; OE pin 6 con pull-down. El ADCS externo debe tolerar hasta 3,6 V en sus pines apagados, sin alimentación parásita y con fuga máxima de 10 uA por pin. La protección del traductor no detecta un apagado remoto mientras sus fuentes locales sigan activas. GPIO de OE, umbrales, protección ESD y secuencias siguen por cerrar. El informe detalla resistencias, desacoplo y cálculos.

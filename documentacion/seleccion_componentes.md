@@ -60,6 +60,16 @@ La evaluación, las fuentes primarias y sus archivos locales se encuentran en `e
 - Fuentes: SRC-009, SRC-012 y SRC-013; trazabilidad ET-04, IF-09 y PCB-06/07/08.
 - Límites: corriente máxima y arranque no publicados en la ficha consultada; no se han elegido protección, zócalo ni interruptor. Capacidad útil, tiempos de escritura y retención mecánica requieren verificación. No se acredita redundancia ni aptitud orbital.
 
+## SEL-004 — Adaptación UART de actitud
+
+- Aprobada: 2026-10-25. Texas Instruments TXU0202DCUR, DCU de 8 contactos.
+- Función: dos canales opuestos entre el dominio de 1,8 V del SoM y el de 3,3 V externo. Trazabilidad: IF-14/15; cambio C-11.
+- Alternativa: SN74AXC2T245 con dirección configurable; se prefiere la dirección fija y los terminales accesibles del DCU para esta UART.
+- Soporte: dos condensadores de 100 nF; tres pull-ups de 10 kohm y un pull-down de OE de 10 kohm, 1 %. Referencias comerciales de pasivos pendientes.
+- Condición externa aprobada: pines UART tolerantes hasta 3,6 V sin alimentación, alta impedancia y fuga máxima de 10 uA por pin. Es requisito del módulo idealizado, no validación de un dispositivo real.
+- Pendientes: GPIO OE y estado de reinicio, fuente/secuencia 1,8 V, umbrales/fugas garantizados del Verdin, ESD, carga dinámica, pinout y huella verificados en Altium. La selección no equivale a circuito liberado.
+- Cálculos: Entradas!A90:F97 y Calculos!A79:D86. Cotas por resistencia, no consumo permanente total. Fuentes SRC-014/015.
+
 ## Método para las siguientes selecciones
 
 Agregar una entrada SEL-XXX por decisión relevante, con referencia exacta, función, alternativas, justificación, requisitos, fuentes y asuntos pendientes. Actualizar el libro, el registro de referencias y los acuerdos afectados. La BOM de Altium y las evidencias ERC se generarán cuando exista el diseño correspondiente; no se sustituyen por listas preliminares.
