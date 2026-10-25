@@ -181,14 +181,15 @@ Las interfaces IF-02 y IF-04 pertenecen a la alimentación de cámara y actitud,
 
 \subsection{Definición preliminar de conectores y señales}
 \label{sec:conectores}
-Se agrupan las señales por función para definir las conexiones con los dispositivos externos. Su número físico puede reducirse si el equipo adopta un conector común de apilamiento. No se selecciona aún una referencia comercial ni se declara una numeración física final: la numeración física depende de la revisión de pines, corrientes, niveles y montaje.
+Se agrupan las señales por función. Se seleccionan conectores JST GH para actitud y telemetría de potencia, con contactos definidos en la sección de asignación de buses y conectores. La entrada de potencia se mantiene separada y requiere dimensionamiento de corriente. Los conectores USB, mantenimiento y antena se seleccionarán según sus requisitos eléctricos y de montaje.
 
 \begin{tabularx}{\textwidth}{L{2.2cm}XX}
 \toprule Identificación propuesta & Señales que se deben asignar & Criterio \\
 \midrule
-J\_EPS & +5V\_IN, +3V3\_IN, GND, EPS\_SCL, EPS\_SDA, EPS\_PGOOD y EPS\_ALERT\_N. & Entradas de potencia y señales externas de 3,3 V; contactos según corriente. \\
+J\_EPS\_PWR & +5V\_IN, +3V3\_IN y retornos de potencia. & Conector y contactos por dimensionar con la corriente total por riel. \\
+J\_EPS\_SIG & GND, EPS\_SCL, EPS\_SDA, EPS\_PGOOD y EPS\_ALERT\_N. & JST GH BM05B-GHS-TBT de cinco contactos; señales externas de 3,3 V. \\
 J\_CAM & Pares de datos USB3, retorno y tratamiento explícito de VBUS. & Cámara alimentada externamente; topología de VBUS por cerrar sin retroalimentación. \\
-J\_ADCS & ADCS\_TX, ADCS\_RX y GND, dominio externo de 3,3 V. & UART hacia controlador externo; potencia de actuadores fuera de la PCB. \\
+J\_ADCS & GND, ADCS\_TX y ADCS\_RX, dominio externo de 3,3 V. & JST GH BM03B-GHS-TBT de tres contactos; potencia de actuadores externa. \\
 J\_DBG & Acceso USB\_1 y consola UART\_3 con sus referencias. & Respetar niveles reales; definir si se usan conectores separados. \\
 J\_ANT & Conexión RF entre la cadena de comunicaciones y la antena. & Tipo de conector, impedancia y límites de potencia según la solución RF. \\
 Sin conector central--radio & Bus digital y señales auxiliares en redes internas. & Ambos bloques se encuentran en la misma PCB; evita introducir una separación física innecesaria. \\
@@ -304,9 +305,125 @@ de los buses anteriores. Para mantenimiento se reserva
 \texttt{USB\_1} como acceso de recuperación y \texttt{UART\_3}
 como consola del procesador \cite{verdinds}. Sus niveles de referencia
 deben respetarse; una referencia de tensión no implica alimentación
-desde la herramienta externa. La selección de conectores, GPIO de
-supervisión y numeración física completa se realizará en la siguiente
-etapa, comprobando multiplexación, estados al reiniciar y disipación.
+desde la herramienta externa. La asignación de los buses y de los conectores de señales se desarrolla
+a continuación. Los GPIO de supervisión y las conexiones restantes
+requieren comprobar multiplexación, estados al reiniciar y disipación.
+
+\subsection{Asignación de buses y conectores de señales}
+Los números de la tabla corresponden a contactos del conector X1 del
+módulo Verdin, no a contactos del arnés externo ni a las bolas del SoC.
+Se mantienen las funciones estándar documentadas por Toradex
+\cite{verdinds}. Las redes externas se conectan mediante la adaptación
+de niveles correspondiente; la tabla no autoriza conectar 3,3 V
+directamente a señales de 1,8 V.
+
+\begin{tabularx}{\textwidth}{L{3cm}L{2cm}X}
+\toprule Función & Contacto X1 & Uso en la PCB \\
+\midrule
+I2C\_1\_SCL & 14 & Reloj de telemetría EPS. \\
+I2C\_1\_SDA & 12 & Datos bidireccionales EPS. \\
+UART\_1\_TXD & 131 & Transmisión hacia RX de actitud. \\
+UART\_1\_RXD & 129 & Recepción desde TX de actitud. \\
+SPI\_1\_MOSI & 200 & Datos hacia comunicaciones. \\
+SPI\_1\_MISO & 198 & Datos desde comunicaciones. \\
+SPI\_1\_CLK & 196 & Reloj generado por el computador. \\
+SPI\_1\_CS & 202 & Selección del dispositivo de comunicaciones. \\
+UART\_3\_TXD & 149 & Salida de consola. \\
+UART\_3\_RXD & 147 & Entrada de consola. \\
+\bottomrule
+\end{tabularx}
+
+Los contactos enumerados no se repiten. Esta comprobación de asignación
+no sustituye la configuración de multiplexación y software: se deben
+habilitar esas funciones y evitar sus alternativas en el mismo contacto.
+No constituye todavía la asignación completa del módulo; faltan señales
+de supervisión, alimentación, gestión de arranque y otros buses.
+
+\subsubsection{Conexión al módulo de actitud}
+Se utiliza un conector JST GH vertical de tres contactos
+\texttt{BM03B-GHS-TBT}, con carcasa de cable \texttt{GHR-03V-S}
+y contactos crimpados \texttt{SSHL-002T-P0.2}.
+Se adopta conductor AWG 28 dentro del rango publicado de la familia.
+La serie ofrece paso de 1,25 mm, polarización y bloqueo mecánico
+\cite{jstgh}. Estas características permiten una conexión compacta y
+reducen la posibilidad de inversión o desconexión accidental. Debe
+comprobarse el espacio de inserción vertical y sujetarse el arnés para
+no transmitir esfuerzos a las soldaduras.
+
+\begin{tabularx}{\textwidth}{L{1.5cm}L{3cm}X}
+\toprule Contacto & Red en J\_ADCS & Conexión y sentido \\
+\midrule
+1 & GND & Referencia común de señales. \\
+2 & ADCS\_TX & Salida del computador a 3,3 V hacia RX externo. \\
+3 & ADCS\_RX & Entrada al computador desde TX externo a 3,3 V. \\
+\bottomrule
+\end{tabularx}
+
+La numeración es una decisión del diseño, no un estándar de pinout UART.
+Debe conservarse en ambos extremos y verificarse con el dibujo del
+fabricante, evitando invertir la vista del lado de acoplamiento.
+El módulo de actitud recibe su energía externamente; este conector
+transporta señales y referencia, sin alimentar actuadores.
+El arnés tendrá inicialmente una longitud máxima de 150 mm, como
+hipótesis geométrica para el diseño 1U que deberá verificarse en montaje.
+Esta longitud no demuestra por sí sola integridad de señal.
+
+\subsubsection{Conexión de telemetría al EPS}
+Se separa J\_EPS en J\_EPS\_PWR y J\_EPS\_SIG.
+La separación permite dimensionar contactos y cable de potencia a
+partir de su corriente, sin imponer ese tamaño a las señales.
+También permite comprobar la continuidad del arnés de telemetría por
+separado. Esta división añade un conector y exige controlar la conexión
+de señales cuando alguno de los extremos no está alimentado.
+
+J\_EPS\_SIG utiliza \texttt{BM05B-GHS-TBT}, carcasa
+\texttt{GHR-05V-S} y contactos \texttt{SSHL-002T-P0.2}, con cable
+AWG 28. Emplear cinco contactos lo distingue físicamente del conector
+de actitud de tres contactos. El uso de una misma familia simplifica
+la preparación del arnés y de las huellas, sin hacer intercambiables
+los conjuntos de diferente tamaño.
+
+\begin{tabularx}{\textwidth}{L{1.5cm}L{3cm}X}
+\toprule Contacto & Red & Función \\
+\midrule
+1 & GND & Referencia común de señales. \\
+2 & EPS\_SCL & Reloj I2C, dominio externo de 3,3 V. \\
+3 & EPS\_SDA & Datos I2C, dominio externo de 3,3 V. \\
+4 & EPS\_PGOOD & Estado de potencia hacia supervisión local. \\
+5 & EPS\_ALERT\_N & Aviso del EPS hacia el computador. \\
+\bottomrule
+\end{tabularx}
+
+La asignación de PGOOD a la supervisión y de ALERT a un GPIO se cerrará
+al diseñar el arranque y la adaptación. No se conectan arbitrariamente
+a entradas del SoM. Se fija como hipótesis inicial un arnés de hasta
+150 mm. La capacitancia del arnés, conectores, adaptador y pines se
+incluirá al calcular los pull-ups; la longitud no sustituye ese cálculo.
+El retorno de señales debe compartir referencia con potencia, evitando
+que el conductor delgado del arnés se convierta en el retorno de carga
+si se desconecta J\_EPS\_PWR. No se especifica conexión en caliente.
+
+La ficha vigente de la familia GH publica un intervalo de
+$-40$ a $+105\,^{\circ}\mathrm{C}$ y 1 A con conductor AWG 26
+\cite{jstgh}. La corriente citada no se extrapola al AWG 28 ni se
+utiliza para dimensionar la alimentación de la tarjeta. La selección
+es para señales; tampoco acredita calificación espacial o resistencia
+del conjunto frente a vibración. Antes de liberar la BOM deben
+verificarse los sufijos de suministro, el plano y el rango térmico
+de las referencias exactas adquiridas.
+
+\subsubsection{Conexiones que requieren dimensionamiento adicional}
+J\_EPS\_PWR se seleccionará después de sumar las corrientes por riel,
+incluyendo transmisión de radio y simultaneidad. Los 3 A asignados al
+SoM no representan la corriente total. La caída de tensión se evaluará
+en el trayecto completo de ida y retorno, contactos, protecciones y
+pistas; no se justificará capacidad mediante reparto ideal de corriente
+entre contactos paralelos.
+La cámara mantiene su enlace USB3 y requiere un conector apropiado
+para esa interfaz. Su conjunto de alimentación externo debe cerrar
+el tratamiento de VBUS. No se sustituye por un conector GH.
+El SPI permanece como pistas internas entre las dos secciones de la
+misma PCB. No se añade un conector entre computador y comunicaciones.
 
 \subsection{Necesidades de procesamiento y memoria}
 La cámara de referencia es la XIMEA
@@ -510,6 +627,7 @@ C-06 & Adoptar cámara XIMEA y computador modular Verdin. & Se separa el almacen
 C-07 & Adoptar requisitos de arranque y supervisión. & Definir estados iniciales y respuesta ante pérdida de alimentación; los circuitos concretos se seleccionarán posteriormente. \\
 C-08 & Seleccionar almacenamiento independiente de misión. & microSD industrial de 16 GB y escenario de 90 días. Se distinguen capacidad nominal, umbral útil, cuotas y reserva. \\
 C-09 & Definir contratos de módulos externos. & EPS por I2C y controlador ADCS por UART, con dominio externo de 3,3 V. La energía de cámara se entrega externamente; la topología VBUS requiere cierre eléctrico. \\
+C-10 & Asignar buses y conectores de señales. & Contactos X1 para I2C, UART y SPI; conectores GH de tres y cinco contactos para actitud y telemetría EPS. La entrada de potencia se dimensiona por separado. \\
 \bottomrule
 \end{tabularx}
 
@@ -794,5 +912,9 @@ Consulta: 25 de octubre de 2026.
 \url{https://developer.toradex.com/linux-bsp/application-development/peripheral-access/sdmmc-card-linux/}.
 Consulta: 25 de octubre de 2026.
 
+\bibitem{jstgh}
+J.S.T. Mfg. Co., Ltd., \emph{GH connector: Product Profile}.
+\url{https://www.jst-mfg.com/product/index.php?lang=2&series=105}.
+Consultado el 25 de octubre de 2026.
 \end{thebibliography}
 \end{document}
