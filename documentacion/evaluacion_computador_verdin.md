@@ -29,7 +29,7 @@ Una validación futura deberá fijar las versiones de BSP y SDK, comprobar depen
 
 ## Alimentación: especificación calculada
 
-Se propone 5 V ±5 % EN LOS PINES VCC del SoM: 4,75–5,25 V, contenido en el rango recomendado 3,135–5,5 V [S1]. Se conserva 5 V por coherencia con ET-02 y para evitar una conversión adicional dedicada al SoM; VBUS de cámara tendrá su propia rama y protección.
+Se propone 5 V ±5 % EN LOS PINES VCC del SoM: 4,75–5,25 V, contenido en el rango recomendado 3,135–5,5 V [S1]. Se conserva 5 V por coherencia con ET-02 y para evitar una conversión adicional dedicada al SoM; la energía de cámara se entrega mediante el conjunto externo, con topología VBUS y protección por definir en su contrato.
 
 La guía de familia recomienda provisionar hasta 12,5 W de pico y distingue 8,25 W sostenidos [S3, §3.1]. Estas cifras son una envolvente de dimensionamiento de la familia, NO el consumo medido de este módulo. Se adopta esa envolvente por no disponer de un máximo validado para nuestra aplicación y revisión.
 
@@ -43,7 +43,7 @@ La tolerancia se exige en el SoM: si se aplica únicamente al conector de entrad
 
 Los transitorios, rampa, desacoplo, secuencia, protección y caída real se cerrarán al seleccionar circuitos. Una especificación de 3 A no sustituye esas verificaciones. Se seguirá la sección 3 de [S3], usando la hoja específica del módulo ante diferencias con la guía de familia.
 
-El requerimiento TOTAL de entrada de la baquela se obtendrá añadiendo almacenamiento externo, VBUS de cámara, comunicaciones y auxiliares con pérdidas y simultaneidad. No se declara que 5 V/3 A alimenten toda la baquela. Los 5 W y 300 mW heredados se conservan solo como antecedentes.
+El requerimiento TOTAL de entrada de la baquela se obtendrá añadiendo almacenamiento de misión, comunicaciones y auxiliares con pérdidas y simultaneidad. No se declara que 5 V/3 A alimenten toda la baquela. Los 5 W y 300 mW heredados se conservan solo como antecedentes.
 
 ## Recursos y geometría
 
@@ -55,7 +55,7 @@ RAW16: 2048 × 1088 × 2 = 4 456 448 bytes/cuadro. Dos buffers: 8 912 896 bytes 
 
 - Reservar bloques para zócalo del SoM, alimentación supervisada, USB de cámara, recuperación, almacenamiento y enlace digital a comunicaciones.
 - Muchas señales del SoM son de 1,8 V [S3]; verificar cada pin antes de conectar periféricos de 3,3 V. Alimentación de 5 V no significa lógica de 5 V.
-- VBUS debe proceder de un circuito de potencia externo al SoM; incluir habilitación, detección de sobrecorriente y protección ESD. Sus referencias se escogerán después.
+- La energía de cámara procede del conjunto externo. El contrato USB debe cerrar VBUS, retorno y prevención de retroalimentación; la PCB conserva la responsabilidad de adaptar y proteger sus señales. No se asigna una rama de potencia de cámara a esta tarjeta.
 - Reservar programación, recuperación y consola; cerrar buses de almacenamiento y radio sin conflictos de multiplexación.
 - Elegir posteriormente zócalo, adaptadores de nivel y supervisores como componentes con referencias y cálculos propios.
 

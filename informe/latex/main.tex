@@ -163,37 +163,150 @@ La siguiente tabla conserva los identificadores de la práctica 3 \cite{lab3}. L
 \begin{longtable}{L{2cm}L{3.1cm}L{5.5cm}L{3.3cm}}
 \toprule ID & Relación & Definición preliminar & Condición de cierre \\
 \midrule\endhead
-IF-01, IF-05 & Potencia hacia central y memoria & Entrada regulada y retorno. 3,3 V y/o 5 V según acuerdo con potencia. & Tensiones, corriente máxima y secuencia. \\
+IF-01, IF-05 & Potencia hacia central y memoria & Entradas reguladas de 5 V y 3,3 V y retorno común. & Corriente total, caída y secuencia; 3 A exclusivos del SoM. \\
 IF-03 & Potencia hacia radio & Alimentación del bloque de comunicaciones dentro de la misma PCB. & Consumo de transmisión y asignación de redes. \\
-IF-07 & Central hacia cámara & Configuración, captura y estado según cámara seleccionada. & Protocolo, niveles y señales de control. \\
-IF-08 & Cámara hacia central & Transferencia de imágenes; interfaz de mayor impacto en selección del procesador. & Bus, tasa de pico, temporización y formato. \\
+IF-07 & Central hacia cámara & Configuración y captura por USB3, puerto USB\_2 anfitrión. & SDK y contrato de VBUS externo. \\
+IF-08 & Cámara hacia central & Imágenes RAW16 por el mismo enlace USB3. & Tasa efectiva, buffers y formato. \\
 IF-09 & Central y almacenamiento & Bus SD nativo de cuatro bits hacia microSD Kingston de misión; modo inicial 25 MHz y 3,3 V. & Circuito de alimentación, zócalo y escritura sostenida por verificar. \\
-IF-10, IF-11 & Central y comunicaciones & Bus interno bidireccional; reservar conceptualmente control, estado e interrupción. & SPI/UART u otro bus, señales y carga de datos. \\
-IF-14, IF-15 & Central y actitud & Mediciones y comandos hacia sensores/controladores externos. & Buses, número de señales y ubicación de las etapas de manejo. \\
-IF-16 & Potencia hacia central & Telemetría y alertas; bus digital y/o señales discretas por acordar. & Protocolo, direcciones, niveles y estados de falla. \\
+IF-10, IF-11 & Central y comunicaciones & SPI\_1 interno, Verdin maestro; MOSI, MISO, SCK y CS. & Referencia del extremo, niveles, modo y frecuencia. \\
+IF-14, IF-15 & Central y actitud & UART\_1, 115200 bit/s, 8N1; controlador externo de actitud. & Tramas, tiempos y adaptación al dominio externo de 3,3 V. \\
+IF-16 & Potencia y central & I2C\_1 a 100 kHz; EPS\_PGOOD y EPS\_ALERT\_N; dominio externo de 3,3 V. & Dirección, registros, pull-ups y estados sin alimentación. \\
 IF-17, IF-18 & Supervisión y central & Medición/configuración de diagnóstico local o externo. & Ubicación y selección de sensores. \\
 IF-12, IF-13 & Comunicaciones y estación terrestre & Enlace bidireccional a través de la cadena RF y la antena. & Banda, potencia, protocolo y capacidad útil. \\
-Nueva: IF-C01 & Herramienta de desarrollo y central & Programación, depuración, referencia de tensión y reinicio. & Familia del procesador y estándar de conexión. \\
+Nueva: IF-C01 & Herramienta y central & USB\_1 para recuperación y UART\_3 para consola. & Conectores, niveles y estados de recuperación. \\
 \bottomrule
 \end{longtable}
 \normalsize
-Las interfaces IF-02 y IF-04 pertenecen a la alimentación de cámara y actitud, respectivamente, y la IF-06 a la supervisión. Su paso por la PCB integrada dependerá de la distribución de alimentación acordada. IF-12 e IF-13 describen el enlace inalámbrico; su conexión física con la tarjeta se realiza mediante la interfaz hacia antena. Las funciones de control y transferencia de imágenes de IF-07 e IF-08 pueden compartir una misma interfaz física si la cámara seleccionada lo permite.
+Las interfaces IF-02 y IF-04 pertenecen a la alimentación de cámara y actitud, respectivamente, y la IF-06 a la supervisión. La alimentación de cámara y actuadores se resuelve externamente; se define su contrato de señales con la PCB integrada. La ubicación de la supervisión IF-06 se precisa según cada señal. IF-12 e IF-13 describen el enlace inalámbrico; su conexión física con la tarjeta se realiza mediante la interfaz hacia antena. Las funciones de control y transferencia de imágenes de IF-07 e IF-08 pueden compartir una misma interfaz física si la cámara seleccionada lo permite.
 
 \subsection{Definición preliminar de conectores y señales}
 \label{sec:conectores}
-Se agrupan las señales por función para definir las conexiones con los dispositivos externos. Su número físico puede reducirse si el equipo adopta un conector común de apilamiento. No se selecciona aún una referencia comercial ni se declara una numeración física final: hacerlo sin cámara, sensores y corrientes acordados podría producir un conector insuficiente o incompatible.
+Se agrupan las señales por función para definir las conexiones con los dispositivos externos. Su número físico puede reducirse si el equipo adopta un conector común de apilamiento. No se selecciona aún una referencia comercial ni se declara una numeración física final: la numeración física depende de la revisión de pines, corrientes, niveles y montaje.
 
 \begin{tabularx}{\textwidth}{L{2.2cm}XX}
 \toprule Identificación propuesta & Señales que se deben asignar & Criterio \\
 \midrule
-J\_EPS & Alimentación regulada, GND, telemetría y alertas; habilitación si se acuerda. & Número de contactos de potencia según corriente y conector; incluir estados al arrancar. \\
-J\_CAM & GND, control y datos de cámara; alimentación solo si se acuerda suministrarla desde esta PCB. & Definir con la interfaz elegida, incluyendo señales de datos, control, retorno y alimentación cuando corresponda. \\
-J\_ADCS & GND, buses de sensores y señales hacia controladores de actitud. & No transportar potencia de actuadores sin un acuerdo explícito. \\
-J\_DBG & GND, referencia de tensión, señales de programación/depuración y reinicio. & Ajustar al estándar soportado por el procesador; no asumir que la referencia alimenta la tarjeta. \\
+J\_EPS & +5V\_IN, +3V3\_IN, GND, EPS\_SCL, EPS\_SDA, EPS\_PGOOD y EPS\_ALERT\_N. & Entradas de potencia y señales externas de 3,3 V; contactos según corriente. \\
+J\_CAM & Pares de datos USB3, retorno y tratamiento explícito de VBUS. & Cámara alimentada externamente; topología de VBUS por cerrar sin retroalimentación. \\
+J\_ADCS & ADCS\_TX, ADCS\_RX y GND, dominio externo de 3,3 V. & UART hacia controlador externo; potencia de actuadores fuera de la PCB. \\
+J\_DBG & Acceso USB\_1 y consola UART\_3 con sus referencias. & Respetar niveles reales; definir si se usan conectores separados. \\
 J\_ANT & Conexión RF entre la cadena de comunicaciones y la antena. & Tipo de conector, impedancia y límites de potencia según la solución RF. \\
 Sin conector central--radio & Bus digital y señales auxiliares en redes internas. & Ambos bloques se encuentran en la misma PCB; evita introducir una separación física innecesaria. \\
 \bottomrule
 \end{tabularx}
+
+\subsection{Contrato funcional de interfaces entre módulos}
+\label{sec:contrato_interfaces}
+La PCB integra computador, almacenamiento y comunicaciones. Potencia,
+cámara y actitud se consideran módulos externos que satisfacen los
+contratos aquí definidos. Esta partición permite desarrollar la
+tarjeta sin diseñar sus circuitos externos, pero exige respetar las
+tensiones, secuencias y condiciones de conexión en nuestra frontera.
+
+\subsubsection{Alimentación y supervisión desde potencia}
+Se requieren entradas reguladas de 5 V y 3,3 V, con retorno común.
+La capacidad de 3 A establecida para el SoM pertenece únicamente a
+su rama. La capacidad total de entrada debe incluir memoria externa,
+comunicaciones, auxiliares y pérdidas. La tensión debe mantenerse
+dentro de los límites de cada carga después de la distribución.
+
+Se reserva \texttt{I2C\_1} para telemetría y comandos de potencia,
+inicialmente a 100 kHz. El computador actúa como controlador y el
+módulo de potencia como destino direccionado. Esta interfaz permite
+consultar registros sin ocupar el SPI reservado a comunicaciones.
+Se definen \texttt{EPS\_SCL}, \texttt{EPS\_SDA} y GND, además de
+\texttt{EPS\_PGOOD} para supervisión de alimentación y
+\texttt{EPS\_ALERT\_N} para avisos. La dirección I2C, los registros,
+la temporización y el estado de esas señales sin alimentación se
+establecerán antes de cerrar el esquemático. PGOOD debe actuar sobre
+la supervisión apropiada; no se presupone que un programa pueda
+supervisar una alimentación antes de que el computador arranque.
+
+\subsubsection{Contrato con el módulo de actitud}
+Se adopta un módulo externo con controlador propio que reúne las
+mediciones y gobierna los drivers de los actuadores. El computador
+intercambia comandos, consignas y estados con ese controlador; no se
+conectan sensores sin interfaz directamente a una UART ni se traslada
+la potencia de actuadores a nuestra PCB.
+
+Se reserva \texttt{UART\_1}, inicialmente a 115200 bit/s, ocho bits
+de datos, sin paridad y un bit de parada (8N1). Las señales se denominan
+\texttt{ADCS\_TX} y \texttt{ADCS\_RX} desde la perspectiva del
+computador: su TX se conecta al RX del módulo externo y viceversa.
+La conexión punto a punto no necesita dirección de dispositivo.
+Con un bit de inicio, ocho de datos y uno de parada, el techo de
+carga útil antes de cabeceras es
+\begin{equation}
+R_{\mathrm{UART,max}}=\frac{115200}{1+8+1}
+=11520\ \mathrm{bytes/s}.
+\end{equation}
+Este cálculo no demuestra suficiencia para un volumen de telemetría
+todavía no definido. La longitud, identificación, secuencia y
+comprobación de integridad de las tramas se especificarán junto con
+los tiempos de respuesta. Se supone cableado corto dentro del 1U,
+masa común y separación de retornos de actuadores; si esas condiciones
+no permiten mantener integridad, se revisará la capa física.
+
+\subsubsection{Niveles lógicos y adaptación}
+Se establece un dominio de 3,3 V en las interfaces digitales externas
+de potencia y actitud. Es un contrato de diseño de estos módulos,
+no una propiedad supuesta de todos los pines del Verdin. Las señales
+del SoM que operan a 1,8 V requieren adaptación compatible
+\cite{verdinds}. Para I2C se debe conservar el funcionamiento de
+drenador abierto y dimensionar las resistencias de polarización con
+la capacitancia del bus y los límites eléctricos de ambos extremos.
+Para UART se respeta la dirección de cada señal. Las señales de
+supervisión también necesitan comprobar sus umbrales y estados.
+
+Este acuerdo no modifica los niveles físicos de USB ni asigna
+automáticamente 3,3 V al extremo interno del SPI de comunicaciones.
+La referencia de alimentación de 5 V del SoM tampoco autoriza señales
+lógicas de 5 V. Las referencias de adaptadores se elegirán al cerrar
+la tabla de pines y los dispositivos de cada extremo.
+
+\subsubsection{SPI interno de comunicaciones}
+Se reserva \texttt{SPI\_1}, con el Verdin como maestro, usando
+\texttt{SPI\_MOSI}, \texttt{SPI\_MISO}, \texttt{SPI\_SCK} y
+\texttt{SPI\_CS}. MOSI, SCK y CS salen del computador; MISO entra.
+Se propone CS activo en bajo, que deberá confirmarse con el dispositivo
+de comunicaciones. No se requiere un conector entre las dos secciones
+de la misma PCB. La referencia de masa y los dominios de alimentación
+deben quedar definidos aunque no se representen junto al bus en TOP.
+
+La frecuencia, CPOL/CPHA, formato de transferencias y niveles del
+extremo de comunicaciones se cerrarán con su referencia concreta.
+\texttt{COM\_IRQ} y \texttt{COM\_RESET\_N} se reservan
+conceptualmente; su necesidad y polaridad no se declaran confirmadas.
+Los puertos de las hojas hijas deben coincidir con las entradas de
+sus símbolos en TOP y tener direcciones coherentes. La continuidad
+gráfica no sustituye la revisión eléctrica ni el ERC.
+
+\subsubsection{Cámara alimentada externamente}
+Se conserva \texttt{USB\_2} como anfitrión para la XIMEA. Control
+y transferencia de imágenes comparten esa conexión. La entrega de
+energía a la cámara se asigna al conjunto externo de potencia/cámara,
+por lo que su consumo no se suma por defecto a la entrada de nuestra
+PCB, aunque sí pertenece al presupuesto global del sistema.
+
+La cámara seleccionada recibe energía mediante USB
+\cite{ximeamanual}; asignar su alimentación externamente no crea una
+entrada independiente en el dispositivo. El conjunto externo debe
+resolver la entrega de VBUS y el retorno hacia la cámara. El contrato
+de conexión deberá definir VBUS en el extremo anfitrión, secuencias
+y prevención de retroalimentación. No se adopta como solución
+desconectar el conductor de 5 V ni unir dos fuentes directamente.
+La topología física de esa conexión permanece por concretar y no se
+presenta como un cableado validado.
+
+\subsubsection{Almacenamiento y mantenimiento}
+\texttt{SD\_1} mantiene su asignación a la microSD, independiente
+de los buses anteriores. Para mantenimiento se reserva
+\texttt{USB\_1} como acceso de recuperación y \texttt{UART\_3}
+como consola del procesador \cite{verdinds}. Sus niveles de referencia
+deben respetarse; una referencia de tensión no implica alimentación
+desde la herramienta externa. La selección de conectores, GPIO de
+supervisión y numeración física completa se realizará en la siguiente
+etapa, comprobando multiplexación, estados al reiniciar y disipación.
 
 \subsection{Necesidades de procesamiento y memoria}
 La cámara de referencia es la XIMEA
@@ -396,6 +509,7 @@ C-05 & Precisar RNF-03 según la interfaz elegida. & Control de impedancia y par
 C-06 & Adoptar cámara XIMEA y computador modular Verdin. & Se separa el almacenamiento de misión de la RAM y memoria de arranque. Se revisan potencia e interfaces; la compatibilidad del SDK en el módulo permanece como hipótesis de integración. \\
 C-07 & Adoptar requisitos de arranque y supervisión. & Definir estados iniciales y respuesta ante pérdida de alimentación; los circuitos concretos se seleccionarán posteriormente. \\
 C-08 & Seleccionar almacenamiento independiente de misión. & microSD industrial de 16 GB y escenario de 90 días. Se distinguen capacidad nominal, umbral útil, cuotas y reserva. \\
+C-09 & Definir contratos de módulos externos. & EPS por I2C y controlador ADCS por UART, con dominio externo de 3,3 V. La energía de cámara se entrega externamente; la topología VBUS requiere cierre eléctrico. \\
 \bottomrule
 \end{tabularx}
 
@@ -507,10 +621,12 @@ el encaje del conjunto completo.
 Se reservarán circuitos para alimentación supervisada, recuperación,
 USB de cámara y adaptación de niveles. Muchas señales digitales usan
 1,8 V \cite{verdinguide}; cada interfaz deberá comprobarse antes de
-conectarla a dispositivos de 3,3 V. VBUS de cámara se suministrará
-mediante una rama protegida, no desde una señal lógica del módulo.
+conectarla a dispositivos de 3,3 V. La energía de la cámara se entrega
+externamente; VBUS y la prevención de retroalimentación se cerrarán
+según el contrato de la sección~\ref{sec:contrato_interfaces}.
 El almacenamiento externo se conecta al bus SD dedicado. La interfaz
-digital de comunicaciones se seleccionará sin conflictos de multiplexación.
+digital de comunicaciones usa SPI\_1; la asignación física debe comprobar
+que no existan conflictos de multiplexación.
 
 \subsection{Almacenamiento independiente de misión}
 
