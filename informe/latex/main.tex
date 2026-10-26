@@ -827,6 +827,27 @@ consumo permanente ni incluye cámara, almacenamiento externo,
 comunicaciones o auxiliares. El requerimiento total de la PCB se
 obtendrá al completar esos bloques y sus pérdidas.
 
+Se especifica una tensión de entrada de $5\ \mathrm{V}\pm2\,\%$
+entre los nodos \texttt{+5V\_EPS\_IN} y GND de la PCB, después
+del conector de alimentación. El EPS debe satisfacer este contrato
+considerando las caídas anteriores a dicha frontera. La rama del SoM
+incorpora una protección independiente entre esta entrada y
+\texttt{+5V\_SOM}; su componente y ajustes requieren verificación
+eléctrica antes de cerrar la selección.
+El margen inferior de distribución a 3 A es
+\begin{equation}
+\Delta V_{\mathrm{distrib}}=4{,}90-4{,}75=0{,}15\ \mathrm{V},
+\qquad
+R_{\mathrm{trayecto,max}}=\frac{0{,}15}{3}
+=50\ \mathrm{m}\Omega.
+\end{equation}
+Esta resistencia equivalente incluye protección, distribución y
+retorno desde la frontera definida hasta los pines del módulo.
+El diseño debe quedar por debajo de esa cota para reservar margen
+frente a transitorios; consumirla por completo solo satisface el
+límite estático. La tensión especificada no sustituye la comprobación
+de arranque, sobreimpulso y respuesta a cambios de carga.
+
 Para cada riel se calculará la corriente máxima aplicable sumando dispositivos activos en cada modo y sus circuitos auxiliares. Si existe conversión local, su corriente de entrada se estimará mediante
 \begin{equation}
 I_{\mathrm{entrada}}=\frac{\sum_k V_k I_k}{\eta_{\mathrm{reg}}V_{\mathrm{entrada}}},
@@ -834,7 +855,65 @@ I_{\mathrm{entrada}}=\frac{\sum_k V_k I_k}{\eta_{\mathrm{reg}}V_{\mathrm{entrada
 Esta expresión supone una eficiencia equivalente para el conjunto de salidas. Si se emplean convertidores independientes, se calculará la potencia de entrada de cada uno con su eficiencia y carga, y se sumarán sus contribuciones junto con las cargas directas. El consumo propio solo se añadirá por separado cuando no esté incluido en la eficiencia utilizada, evitando contabilizarlo dos veces.
 
 
+\subsubsection{Desacoplo y evaluación de la protección del computador}
+La alimentación del SoM utiliza los contactos 251, 253, 255, 257 y
+259 de X1, unidos a \texttt{+5V\_SOM}; los contactos GND se conectan
+al retorno común. Se incorpora un banco en paralelo de cinco
+condensadores de 4,7 $\mu$F, 10 V, X5R, tolerancia del 10\,\% y
+encapsulado 0603, más uno de 22 $\mu$F, 10 V, X5R, tolerancia del
+20\,\% y encapsulado 0805. Este conjunto toma como base el circuito
+de referencia de Toradex, que indica su colocación próxima a los
+contactos de alimentación del zócalo \cite{verdinguide}.
+\begin{align}
+C_{\mathrm{nom}}&=5(4{,}7)+22=45{,}5\ \mu\mathrm{F},\\
+C_{\min,\mathrm{tol}}&=5(4{,}7)(0{,}90)+22(0{,}80)
+=38{,}75\ \mu\mathrm{F},\\
+C_{\max,\mathrm{tol}}&=5(4{,}7)(1{,}10)+22(1{,}20)
+=52{,}25\ \mu\mathrm{F}.
+\end{align}
+Los extremos anteriores incluyen únicamente tolerancia inicial;
+no son límites garantizados de capacidad efectiva en servicio.
+La selección comercial debe comprobar polarización continua,
+temperatura y envejecimiento. A 5,25 V se utiliza el 52,5\,\% de
+la tensión nominal de 10 V; esta relación no cuantifica la pérdida
+de capacitancia. La verificación de arranque debe incluir también
+la capacidad y la carga internas del módulo.
+
+Se evalúan dispositivos eFuse para la protección independiente de
+la rama. A 3 A, el TPS25947 especifica una resistencia máxima de
+45 m$\Omega$ para la envolvente de entrada y temperatura indicada
+en su tabla eléctrica \cite{tps25947}. Por tanto,
+\begin{equation}
+\Delta V_{47}=3(0{,}045)=0{,}135\ \mathrm{V},\qquad
+P_{47}=3^2(0{,}045)=0{,}405\ \mathrm{W}.
+\end{equation}
+Solo quedarían 15 mV del presupuesto de 150 mV para distribución,
+retorno y transitorios. No se considera cerrada esta selección.
+El TPS25948 ofrece una resistencia máxima de 20 m$\Omega$ a 3 A
+en las condiciones de su tabla eléctrica \cite{tps25948}, con
+caída de 60 mV y pérdidas de conducción de 0,180 W. Esta alternativa
+deja 90 mV de margen, pero requiere revisar su encapsulado PowerWCSP,
+la protección ante entrada negativa, la variante y los ajustes.
+El bloqueo de corriente inversa no demuestra protección ante
+polaridad invertida. Estos cálculos comparan conducción estática;
+no validan el comportamiento de arranque, sobrecorriente o térmico
+del circuito completo.
+
 \subsubsection{Condiciones de arranque, reinicio y supervisión}
+El Verdin iMX8M Plus incorpora el circuito que inicia el encendido
+al aplicar la alimentación principal \cite{verdinds}. Para servicio
+se incorporan dos pulsadores normalmente abiertos a GND: uno en
+X1.246, red \texttt{OBC\_RECOVERY\_N}, y otro en X1.260, red
+\texttt{OBC\_RESET\_IN\_N}. El primero permite solicitar recuperación
+durante el encendido y el segundo reiniciar el módulo. Las entradas
+incluyen pull-ups internos de 10 k$\Omega$ y 100 k$\Omega$,
+respectivamente, por lo que no se añaden pull-ups externos a 3,3 V
+o 5 V \cite{verdinds}. La captura utiliza el símbolo de referencia
+\texttt{SW-WMF-TD-03XB}; la correspondencia física de sus contactos
+y la referencia comercial deben verificarse antes de liberar la BOM.
+El pin X1.249, \texttt{VCC\_BACKUP}, se mantiene separado de la
+alimentación principal mientras se define el respaldo del RTC.
+
 Se establecen condiciones de arranque y reinicio que eviten operaciones
 involuntarias mientras la alimentación se estabiliza y el computador
 inicializa sus periféricos. El computador deberá permanecer en reinicio
@@ -1202,5 +1281,13 @@ specification sheet}.
 2025, secciones 4, 5.4--5.6 y 7.4.
 \url{https://www.ti.com/lit/ds/symlink/esd321.pdf}.
 Fuentes consultadas el 25 de octubre de 2026.
+\bibitem{tps25947} Texas Instruments, \emph{TPS25947xx},
+SLVSFC9C, revisión C, mayo de 2026, secciones 4 y 6.5.
+\url{https://www.ti.com/lit/ds/symlink/tps25947.pdf}.
+Consultado el 26 de octubre de 2026.
+\bibitem{tps25948} Texas Instruments, \emph{TPS25948xx},
+SLVSGT9D, revisión D, abril de 2026, secciones 4--6.5.
+\url{https://www.ti.com/lit/ds/symlink/tps25948.pdf}.
+Consultado el 26 de octubre de 2026.
 \end{thebibliography}
 \end{document}
