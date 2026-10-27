@@ -10,6 +10,9 @@
 \usepackage{hyperref}
 \usepackage{fancyhdr}
 \usepackage{microtype}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
 \hypersetup{colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!45!black,citecolor=blue!45!black}
 \setlength{\headheight}{15pt}
 \pagestyle{fancy}
@@ -763,6 +766,84 @@ Se realizó una revisión manual de las hojas capturadas (hoja principal, comput
 
 \textbf{Cambios respecto a la práctica 3 (comunicaciones).} (a) ET-06 pasa de $\geq9600$ bit/s a 4,8 kbit/s con margen de 4,6 dB y 9,6 kbit/s como contingencia; (b) se agrega una etapa de potencia RF de 1 W; (c) los 50 MB/día de imágenes se sustituyen por 276 kB/día de productos reducidos; (d) se añade un traductor de niveles para el SPI. Estos cambios afectan el presupuesto de energía (+2 W en Tx), el requisito de la estación terrestre ($G_r\geq14$ dBi) y el espacio en la PCB.
 
+\section{Lista de materiales y análisis preliminar de costos}
+\label{sec:bomcostos}
+La revisión de la lista de materiales exportada desde Altium identificó inconsistencias de designadores, referencias comerciales y precios. El documento de soporte, elaborado el 26 de octubre de 2026, reúne estos hallazgos y una estimación económica de la PCB integrada \cite{bomrevision}. Su contenido se incorpora como una revisión preliminar: las correcciones propuestas para el cálculo no acreditan por sí mismas una modificación del esquemático ni una BOM final regenerada.
+
+\subsection{Alcance y criterios de estimación}
+El análisis reporta USD 43,88 por tarjeta para los componentes incluidos en la BOM corregida. Para estimar el conjunto añade el módulo Verdin, una etapa de potencia RF y una protección del riel de 5 V como partidas estimadas. Estas adiciones presupuestarias no significan que las tres estén implementadas en el esquemático: en particular, la protección de entrada del SoM sigue pendiente, como se indica en la sección de alimentación.
+
+El precio de referencia del Verdin proviene de un valor reportado de 31\,005,65 INR, convertido con un tipo de cambio supuesto de 88 INR/USD, equivalente a aproximadamente USD 352,34. Tanto la variante comercial como el precio y la conversión requieren confirmación. Para los escenarios de volumen se aplicaron los siguientes multiplicadores al precio de referencia; representan hipótesis de sensibilidad económica, no escalones de cotización consultados.
+
+\begin{table}[htbp]
+\centering
+\caption{Factores de precio supuestos en el análisis recibido.}
+\begin{tabular}{lrr}
+\toprule Clase de componente & 100 tarjetas & 1000 tarjetas \\
+\midrule
+Pasivos & 0,40 & 0,20 \\
+Circuitos integrados & 0,80 & 0,65 \\
+Conectores & 0,85 & 0,70 \\
+Módulo Verdin & 0,97 & 0,92 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Para el costo exigido por la práctica se consideran únicamente componentes, excluyendo fabricación de PCB, ensamblaje, transporte e impuestos. El documento original presenta además una estimación de PCB desnuda; se conserva en el soporte, pero se separa del indicador de costo de componentes del informe.
+
+\subsection{Resultados disponibles}
+\begin{table}[htbp]
+\centering\small
+\caption{Estimaciones reportadas, separando componentes y PCB desnuda. Valores en USD por tarjeta.}
+\label{tab:costosbom}
+\begin{tabular}{rrrr}
+\toprule Tarjetas por lote & Componentes & PCB desnuda & Suma de ambos \\
+\midrule
+1 & 412,38 & 40,00 & 452,38 \\
+100 & 387,31 & 3,00 & 390,31 \\
+1000 & 360,22 & 2,00 & 362,22 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La estimación de componentes disminuye de USD 412,38 a USD 360,22 por tarjeta entre los escenarios de 1 y 1000 unidades, una reducción aproximada del 12,65\,\%. El Verdin representa cerca del 85,44\,\% del costo de componentes en el escenario unitario; su predominio limita el efecto de las reducciones supuestas en pasivos y conectores. La participación cercana al 78\,\% indicada en el documento de soporte utiliza como denominador componentes más PCB desnuda, por lo que corresponde a un indicador distinto.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[ybar,width=0.86\linewidth,height=5.5cm,
+symbolic x coords={1,100,1000},xtick=data,
+xlabel={Tarjetas por lote},ylabel={USD de componentes por tarjeta},
+ymin=0,ymax=480,bar width=25pt,enlarge x limits=0.3,
+nodes near coords,point meta=y,
+every node near coord/.append style={font=\small},
+ytick={0,100,200,300,400},grid=major]
+\addplot[fill=blue!40,draw=blue!60!black] coordinates {(1,412.38) (100,387.31) (1000,360.22)};
+\end{axis}
+\end{tikzpicture}
+\caption{Costo preliminar de componentes por tarjeta para los escenarios disponibles. Los descuentos son supuestos; no se incluye PCB desnuda.}
+\label{fig:costosbom}
+\end{figure}
+
+La guía solicita lotes de \textbf{10, 100 y 1000 tarjetas}; el documento recibido utiliza \textbf{1, 100 y 1000}. Por tanto, el caso unitario se conserva como referencia y no reemplaza el escenario de 10 tarjetas, que permanece pendiente. Para cerrar el análisis deben utilizarse cantidades de compra por componente, precios de proveedor para esas cantidades, mínimos y múltiplos de empaque, sobrantes, moneda, fecha y disponibilidad. No es suficiente aplicar un descuento general al número de tarjetas.
+
+Los totales de lote deberán regenerarse desde la hoja editable con precisión completa. Por ejemplo, 1000 veces el valor redondeado USD 362,22 produce USD 362\,220, mientras que el soporte reporta USD 362\,216: la diferencia debe reconciliarse con los valores de origen, sin asumir que corresponde necesariamente a redondeo. El PDF remite al archivo \texttt{BOM\_costos\_CubeSat\_UD34.xlsx}; dicho archivo no acompaña al soporte incorporado en esta revisión.
+
+\subsection{Hallazgos que condicionan el cierre de la BOM}
+\begin{longtable}{L{3.2cm}L{11.3cm}}
+\toprule Aspecto & Hallazgo y tratamiento requerido \\
+\midrule\endhead
+Cristal del radio & Se reporta una diferencia entre la carga nominal del cristal y la red de condensadores. Confirmar la referencia y dimensionar la carga considerando capacitancias parásitas antes de aprobar el conjunto. \\
+Designadores & Se reportan duplicados entre hojas. Anotar el proyecto integrado y regenerar la BOM; los designadores del documento original identifican esa exportación y pueden cambiar tras la anotación. \\
+Condensador USB de 150 $\mu$F & El análisis excluyó del costo una línea ambigua y sin precio. En el diseño OBC, el condensador de salida USB tiene una función definida y no puede eliminarse del circuito por esa razón. Resolver la referencia, huella, polaridad, designador y precio; mantener su costo pendiente hasta identificar la pieza real. \\
+Valores y encapsulados & Se reportan discrepancias en piezas de 100 pF, 39 pF, 100 nF y 10 $\mu$F. Contrastar valor, MPN y huella con las hojas de datos. La referencia GRM1555C1H390JZ01D se propone en el soporte para el condensador de 39 pF, sin que esta revisión certifique su incorporación. \\
+Subtotales y suministro & Recalcular cantidad por precio unitario; revisar prefijos de distribuidor, estado de disponibilidad del condensador de 1,8 nF y cotización de los de 4,7 $\mu$F. \\
+Partidas estimadas & Separar componentes montados, opcionales y previstos. Confirmar la inclusión del SoM y de las etapas adicionales sin confundir una provisión económica con un circuito ya implementado. \\
+\bottomrule
+\end{longtable}
+
+La BOM definitiva debe corresponder al esquemático integrado y conservar, por línea, designador, descripción, cantidad, fabricante, referencia exacta y encapsulado. El PDF de soporte se archiva sin modificaciones en \texttt{bom/analisis\_costos\_revision\_BOM\_20261026.pdf}. Este análisis complementa la revisión del diseño; no sustituye la BOM tabular editable ni su verificación contra los archivos nativos.
+
 \section{Riesgos, limitaciones y asuntos pendientes}
 \label{sec:riesgos}
 \begin{longtable}{L{1cm}L{6cm}L{6.2cm}}
@@ -879,5 +960,6 @@ Consultado el 26 de octubre de 2026.
 \bibitem{tpd6e05} Texas Instruments. \emph{TPDxE05U06}, SLVSBO7O, agosto de 2024. Tabla 4-3 y recomendaciones de layout. \url{https://www.ti.com/lit/ds/symlink/tpd6e05u06.pdf}.
 \bibitem{mic94073} Microchip. \emph{MIC94070/1/2/3 High-Side Power Switches}, DS20006896A, 2024. Pinout MT y características eléctricas. \url{https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MIC94070-1-2-3-High-Side-Power-Switches-DS20006896.pdf}.
 \bibitem{wurthusb} Würth Elektronik. \emph{692122030100 WR-COM USB 3.0 Horizontal SMT}, revisión 001.003, junio de 2025. \url{https://www.we-online.com/components/products/datasheet/692122030100.pdf}.
+\bibitem{bomrevision} S. Cáceres Vásquez. \emph{Análisis de costos y revisión del BOM --- CubeSat UD34}. 26 de octubre de 2026. Documento suministrado, 2 páginas; secciones 1--6. Copia íntegra en \texttt{bom/analisis\_costos\_revision\_BOM\_20261026.pdf}. Precios y descuentos reportados como estimaciones, sujetos a confirmación.
 \end{thebibliography}
 \end{document}
