@@ -45,7 +45,7 @@ Santiago Cáceres Vásquez\par
 Maria Katherine Plazas Olaya\par
 \vspace{0.6cm}
 Medellín, Colombia\par
-23 de octubre de 2026\par
+26 de octubre de 2026\par
 \vspace{0.5cm}
 
 \end{titlepage}
@@ -112,13 +112,12 @@ Antena & Externa a la PCB & Interfaz electromagnética del enlace con tierra. \\
 \end{tabularx}
 \end{table}
 La tabla distingue la ubicación física de los bloques de sus relaciones
-funcionales. Los protocolos, niveles eléctricos y conectores se definirán
-según los dispositivos seleccionados.
+funcionales. Los protocolos, niveles eléctricos y conectores adoptados se especifican a continuación; los puntos no implementados se identifican expresamente.
 
 \subsection{Trazabilidad de requisitos aplicables}
 La tabla conserva los identificadores de los requisitos de la práctica 3 \cite{lab3}. Su contenido expresa la contribución de la PCB a cada
 requisito; no sustituye el enunciado original ni acredita su cumplimiento.
-Las excepciones o modificaciones se documentarán explícitamente.
+Las excepciones y modificaciones se documentan en los apartados correspondientes.
 \small
 \begin{longtable}{L{1.7cm}L{5.6cm}L{7.1cm}}
 \toprule ID original & Aplicación a la PCB integrada & Evidencia prevista y frontera \\
@@ -145,8 +144,8 @@ Las especificaciones ET-01 a ET-08 proceden de la práctica 3 \cite{lab3}. Se di
 \begin{longtable}{L{1.4cm}L{4.1cm}L{8.9cm}}
 \toprule ID & Base de la práctica 3 & Tratamiento en el diseño y justificación \\
 \midrule\endhead
-ET-01 & Batería 2S: 7,4 V nominal; 6,0--8,4 V. & Dato de contexto de potencia. No se conectará directamente a la lógica por asumir este rango; falta definir qué tensiones reguladas entrega la tarjeta de potencia. \\
-ET-02 & Distribución de 3,3 V y 5 V, con tolerancia de $\pm5\,\%$. & Conservar como base preliminar y verificar los extremos 3,135--3,465 V y 4,75--5,25 V frente a los dispositivos seleccionados. Alimentación y nivel lógico se comprobarán por separado. \\
+ET-01 & Batería 2S: 7,4 V nominal; 6,0--8,4 V. & Dato de contexto de potencia. No se conecta directamente a la lógica; el EPS entrega 3,3 V y la rama de 5,10 V definida para OBC y cámara. \\
+ET-02 & Distribución de 3,3 V y 5 V, con tolerancia de $\pm5\,\%$. & Para OBC/cámara se exige 5,10 V $\pm1\,\%$ en la entrada. El riel de 3,3 V y las caídas se revisan por carga; alimentación y nivel lógico se comprueban por separado. \\
 ET-03 & PCB de hasta $90\times90$ mm. & Aplicar a la PCB integrada completa. No asignar ese espacio por separado a central y comunicaciones. Confirmar con el equipo las zonas de conectores, fijaciones y altura. \\
 ET-04 & Almacenamiento no volátil $\geq16$ GB. & Se adopta microSD de 16 GB nominales; exigir al menos 15 GB útiles tras formato. La retención de 90 días requiere 12,202 GB bajo las cuotas definidas. \\
 ET-05 & Enlace preliminar 435--438 MHz. & Se conserva como antecedente para revisión en comunicaciones; no constituye por sí solo autorización de operación ni selección definitiva. \\
@@ -158,599 +157,150 @@ ET-08 & Reloj del procesador $\geq80$ MHz. & Mantener trazabilidad, pero complem
 \normalsize
 
 \subsection{Interfaces internas y externas de la PCB}
-La siguiente tabla conserva los identificadores de la práctica 3 \cite{lab3}. Las alternativas de bus no son decisiones intercambiables ya resueltas: deben cerrarse usando las características del dispositivo de cada extremo.
+La siguiente tabla conserva los identificadores de la práctica 3 \cite{lab3}. Se distingue la interfaz adoptada de las verificaciones que faltan para su cierre.
 \small
 \begin{longtable}{L{2cm}L{3.1cm}L{5.5cm}L{3.3cm}}
-\toprule ID & Relación & Definición preliminar & Condición de cierre \\
+\toprule ID & Relación & Definición adoptada & Condición de cierre \\
 \midrule\endhead
-IF-01, IF-05 & Potencia hacia central y memoria & Entradas reguladas de 5 V y 3,3 V y retorno común. & Corriente total, caída y secuencia; 3 A exclusivos del SoM. \\
+IF-01, IF-05 & Potencia hacia central y memoria & Entradas reguladas de 5 V y 3,3 V y retorno común. & 5,10 V, 4,5 A para SoM/cámara; revisar distribución y riel de 3,3 V. \\
 IF-03 & Potencia hacia radio & Alimentación del bloque de comunicaciones dentro de la misma PCB. & Consumo de transmisión y asignación de redes. \\
-IF-07 & Central hacia cámara & Configuración y captura por USB3, puerto USB\_2 anfitrión. & SDK y contrato de VBUS externo. \\
+IF-07 & Central hacia cámara & Configuración y captura por USB3, puerto USB\_2 anfitrión. & SDK y VBUS desde U4 en la PCB. \\
 IF-08 & Cámara hacia central & Imágenes RAW16 por el mismo enlace USB3. & Tasa efectiva, buffers y formato. \\
-IF-09 & Central y almacenamiento & Bus SD nativo de cuatro bits hacia microSD Kingston de misión; modo inicial 25 MHz y 3,3 V. & Circuito de alimentación, zócalo y escritura sostenida por verificar. \\
-IF-10, IF-11 & Central y comunicaciones & SPI\_1 interno, Verdin maestro; MOSI, MISO, SCK y CS. & Referencia del extremo, niveles, modo y frecuencia. \\
+IF-09 & Central y almacenamiento & Bus SD nativo de cuatro bits hacia microSD Kingston de misión; modo inicial 25 MHz y 3,3 V. & IC1/J1 capturados; escritura y corriente por verificar. \\
+IF-10, IF-11 & Central y comunicaciones & SPI\_1 interno, Verdin maestro; MOSI, MISO, SCK y CS. & U1 adapta niveles; modo y frecuencia por verificar. \\
 IF-14, IF-15 & Central y actitud & UART\_1, 115200 bit/s, 8N1; controlador externo de actitud. & Tramas, tiempos y adaptación al dominio externo de 3,3 V. \\
-IF-16 & Potencia y central & I2C\_1 a 100 kHz; EPS\_PGOOD y EPS\_ALERT\_N; dominio externo de 3,3 V. & Dirección, registros, pull-ups y estados sin alimentación. \\
+IF-16 & Potencia y central & I2C\_1 a 100 kHz con U3; PGOOD y ALERT reservados; dominio externo de 3,3 V. & Dirección, registros, pull-ups y estados sin alimentación. \\
 IF-17, IF-18 & Supervisión y central & Medición/configuración de diagnóstico local o externo. & Ubicación y selección de sensores. \\
 IF-12, IF-13 & Comunicaciones y estación terrestre & Enlace bidireccional a través de la cadena RF y la antena. & Banda, potencia, protocolo y capacidad útil. \\
 Nueva: IF-C01 & Herramienta y central & USB\_1 para recuperación y UART\_3 para consola. & Conectores, niveles y estados de recuperación. \\
 \bottomrule
 \end{longtable}
 \normalsize
-Las interfaces IF-02 y IF-04 pertenecen a la alimentación de cámara y actitud, respectivamente, y la IF-06 a la supervisión. La alimentación de cámara y actuadores se resuelve externamente; se define su contrato de señales con la PCB integrada. La ubicación de la supervisión IF-06 se precisa según cada señal. IF-12 e IF-13 describen el enlace inalámbrico; su conexión física con la tarjeta se realiza mediante la interfaz hacia antena. Las funciones de control y transferencia de imágenes de IF-07 e IF-08 pueden compartir una misma interfaz física si la cámara seleccionada lo permite.
+Las interfaces IF-02 y IF-04 pertenecen a la alimentación de cámara y actitud, respectivamente, y la IF-06 a la supervisión. La cámara externa recibe energía por VBUS desde la PCB integrada; la potencia de actuadores permanece externa. La ubicación de la supervisión IF-06 se precisa según cada señal. IF-12 e IF-13 describen el enlace inalámbrico; su conexión física con la tarjeta se realiza mediante la interfaz hacia antena. Las funciones de control y transferencia de imágenes de IF-07 e IF-08 pueden compartir una misma interfaz física si la cámara seleccionada lo permite.
 
-\subsection{Definición preliminar de conectores y señales}
+\subsection{Conectores y contrato de interfaces}
 \label{sec:conectores}
-Se agrupan las señales por función. Se seleccionan conectores JST GH para actitud y telemetría de potencia, con contactos definidos en la sección de asignación de buses y conectores. La entrada de potencia se mantiene separada y requiere dimensionamiento de corriente. Los conectores USB, mantenimiento y antena se seleccionarán según sus requisitos eléctricos y de montaje.
-
-\begin{tabularx}{\textwidth}{L{2.2cm}XX}
-\toprule Identificación propuesta & Señales que se deben asignar & Criterio \\
-\midrule
-J\_EPS\_PWR & +5V\_IN, +3V3\_IN y retornos de potencia. & Conector y contactos por dimensionar con la corriente total por riel. \\
-J\_EPS\_SIG & GND, EPS\_SCL, EPS\_SDA, EPS\_PGOOD y EPS\_ALERT\_N. & JST GH BM05B-GHS-TBT de cinco contactos; señales externas de 3,3 V. \\
-J\_CAM & Pares de datos USB3, retorno y tratamiento explícito de VBUS. & Cámara alimentada externamente; topología de VBUS por cerrar sin retroalimentación. \\
-J\_ADCS & GND, ADCS\_TX y ADCS\_RX, dominio externo de 3,3 V. & JST GH BM03B-GHS-TBT de tres contactos; potencia de actuadores externa. \\
-J\_DBG & Acceso USB\_1 y consola UART\_3 con sus referencias. & Respetar niveles reales; definir si se usan conectores separados. \\
-J\_ANT & Conexión RF entre la cadena de comunicaciones y la antena. & Tipo de conector, impedancia y límites de potencia según la solución RF. \\
-Sin conector central--radio & Bus digital y señales auxiliares en redes internas. & Ambos bloques se encuentran en la misma PCB; evita introducir una separación física innecesaria. \\
-\bottomrule
-\end{tabularx}
-
-\subsection{Contrato funcional de interfaces entre módulos}
 \label{sec:contrato_interfaces}
-La PCB integra computador, almacenamiento y comunicaciones. Potencia,
-cámara y actitud se consideran módulos externos que satisfacen los
-contratos aquí definidos. Esta partición permite desarrollar la
-tarjeta sin diseñar sus circuitos externos, pero exige respetar las
-tensiones, secuencias y condiciones de conexión en nuestra frontera.
+Potencia y actitud se consideran módulos externos definidos por sus interfaces. La cámara permanece fuera de la PCB, pero recibe datos y alimentación mediante un único cable USB3. Los niveles digitales del Verdin son de 1,8 V, salvo interfaces con niveles propios, como USB y el bus SD configurado a 3,3 V. La alimentación de 5 V del módulo no implica tolerancia de sus GPIO a 5 V \cite{verdinds}.
 
-\subsubsection{Alimentación y supervisión desde potencia}
-Se requieren entradas reguladas de 5 V y 3,3 V, con retorno común.
-La capacidad de 3 A establecida para el SoM pertenece únicamente a
-su rama. La capacidad total de entrada debe incluir memoria externa,
-comunicaciones, auxiliares y pérdidas. La tensión debe mantenerse
-dentro de los límites de cada carga después de la distribución.
-
-Se reserva \texttt{I2C\_1} para telemetría y comandos de potencia,
-inicialmente a 100 kHz. El computador actúa como controlador y el
-módulo de potencia como destino direccionado. Esta interfaz permite
-consultar registros sin ocupar el SPI reservado a comunicaciones.
-Se definen \texttt{EPS\_SCL}, \texttt{EPS\_SDA} y GND, además de
-\texttt{EPS\_PGOOD} para supervisión de alimentación y
-\texttt{EPS\_ALERT\_N} para avisos. La dirección I2C, los registros,
-la temporización y el estado de esas señales sin alimentación se
-establecerán antes de cerrar el esquemático. PGOOD debe actuar sobre
-la supervisión apropiada; no se presupone que un programa pueda
-supervisar una alimentación antes de que el computador arranque.
-
-\subsubsection{Contrato con el módulo de actitud}
-Se adopta un módulo externo con controlador propio que reúne las
-mediciones y gobierna los drivers de los actuadores. El computador
-intercambia comandos, consignas y estados con ese controlador; no se
-conectan sensores sin interfaz directamente a una UART ni se traslada
-la potencia de actuadores a nuestra PCB.
-
-Se reserva \texttt{UART\_1}, inicialmente a 115200 bit/s, ocho bits
-de datos, sin paridad y un bit de parada (8N1). Las señales se denominan
-\texttt{ADCS\_TX} y \texttt{ADCS\_RX} desde la perspectiva del
-computador: su TX se conecta al RX del módulo externo y viceversa.
-La conexión punto a punto no necesita dirección de dispositivo.
-Con un bit de inicio, ocho de datos y uno de parada, el techo de
-carga útil antes de cabeceras es
-\begin{equation}
-R_{\mathrm{UART,max}}=\frac{115200}{1+8+1}
-=11520\ \mathrm{bytes/s}.
-\end{equation}
-Este cálculo no demuestra suficiencia para un volumen de telemetría
-todavía no definido. La longitud, identificación, secuencia y
-comprobación de integridad de las tramas se especificarán junto con
-los tiempos de respuesta. Se supone cableado corto dentro del 1U,
-masa común y separación de retornos de actuadores; si esas condiciones
-no permiten mantener integridad, se revisará la capa física.
-
-\subsubsection{Niveles lógicos y adaptación}
-Se establece un dominio de 3,3 V en las interfaces digitales externas
-de potencia y actitud. Es un contrato de diseño de estos módulos,
-no una propiedad supuesta de todos los pines del Verdin. Las señales
-del SoM que operan a 1,8 V requieren adaptación compatible
-\cite{verdinds}. Para I2C se debe conservar el funcionamiento de
-drenador abierto y dimensionar las resistencias de polarización con
-la capacitancia del bus y los límites eléctricos de ambos extremos.
-Para UART se respeta la dirección de cada señal. Las señales de
-supervisión también necesitan comprobar sus umbrales y estados.
-
-Este acuerdo no modifica los niveles físicos de USB ni asigna
-automáticamente 3,3 V al extremo interno del SPI de comunicaciones.
-La referencia de alimentación de 5 V del SoM tampoco autoriza señales
-lógicas de 5 V. La UART de actitud utiliza el TXU0202, desarrollado en la sección de
-adaptación. Los adaptadores de I2C y, si procede, de SPI se seleccionarán
-al cerrar sus condiciones eléctricas.
-
-\subsubsection{SPI interno de comunicaciones}
-Se reserva \texttt{SPI\_1}, con el Verdin como maestro, usando
-\texttt{SPI\_MOSI}, \texttt{SPI\_MISO}, \texttt{SPI\_SCK} y
-\texttt{SPI\_CS}. MOSI, SCK y CS salen del computador; MISO entra.
-Se propone CS activo en bajo, que deberá confirmarse con el dispositivo
-de comunicaciones. No se requiere un conector entre las dos secciones
-de la misma PCB. La referencia de masa y los dominios de alimentación
-deben quedar definidos aunque no se representen junto al bus en TOP.
-
-La frecuencia, CPOL/CPHA, formato de transferencias y niveles del
-extremo de comunicaciones se cerrarán con su referencia concreta.
-\texttt{COM\_IRQ} y \texttt{COM\_RESET\_N} se reservan
-conceptualmente; su necesidad y polaridad no se declaran confirmadas.
-Los puertos de las hojas hijas deben coincidir con las entradas de
-sus símbolos en TOP y tener direcciones coherentes. La continuidad
-gráfica no sustituye la revisión eléctrica ni el ERC.
-
-\subsubsection{Cámara alimentada externamente}
-Se conserva \texttt{USB\_2} como anfitrión para la XIMEA. Control
-y transferencia de imágenes comparten esa conexión. La entrega de
-energía a la cámara se asigna al conjunto externo de potencia/cámara,
-por lo que su consumo no se suma por defecto a la entrada de nuestra
-PCB, aunque sí pertenece al presupuesto global del sistema.
-
-La cámara seleccionada recibe energía mediante USB
-\cite{ximeamanual}; asignar su alimentación externamente no crea una
-entrada independiente en el dispositivo. El conjunto externo debe
-resolver la entrega de VBUS y el retorno hacia la cámara. El contrato
-de conexión deberá definir VBUS en el extremo anfitrión, secuencias
-y prevención de retroalimentación. No se adopta como solución
-desconectar el conductor de 5 V ni unir dos fuentes directamente.
-La topología física de esa conexión permanece por concretar y no se
-presenta como un cableado validado.
-
-\subsubsection{Almacenamiento y mantenimiento}
-\texttt{SD\_1} mantiene su asignación a la microSD, independiente
-de los buses anteriores. Para mantenimiento se reserva
-\texttt{USB\_1} como acceso de recuperación y \texttt{UART\_3}
-como consola del procesador \cite{verdinds}. Sus niveles de referencia
-deben respetarse; una referencia de tensión no implica alimentación
-desde la herramienta externa. La asignación de los buses y de los conectores de señales se desarrolla
-a continuación. Los GPIO de supervisión y las conexiones restantes
-requieren comprobar multiplexación, estados al reiniciar y disipación.
-
-\subsection{Asignación de buses y conectores de señales}
-Los números de la tabla corresponden a contactos del conector X1 del
-módulo Verdin, no a contactos del arnés externo ni a las bolas del SoC.
-Se mantienen las funciones estándar documentadas por Toradex
-\cite{verdinds}. Las redes externas se conectan mediante la adaptación
-de niveles correspondiente; la tabla no autoriza conectar 3,3 V
-directamente a señales de 1,8 V.
-
-\begin{tabularx}{\textwidth}{L{3cm}L{2cm}X}
-\toprule Función & Contacto X1 & Uso en la PCB \\
-\midrule
-I2C\_1\_SCL & 14 & Reloj de telemetría EPS. \\
-I2C\_1\_SDA & 12 & Datos bidireccionales EPS. \\
-UART\_1\_TXD & 131 & Transmisión hacia RX de actitud. \\
-UART\_1\_RXD & 129 & Recepción desde TX de actitud. \\
-SPI\_1\_MOSI & 200 & Datos hacia comunicaciones. \\
-SPI\_1\_MISO & 198 & Datos desde comunicaciones. \\
-SPI\_1\_CLK & 196 & Reloj generado por el computador. \\
-SPI\_1\_CS & 202 & Selección del dispositivo de comunicaciones. \\
-UART\_3\_TXD & 149 & Salida de consola. \\
-UART\_3\_RXD & 147 & Entrada de consola. \\
-\bottomrule
-\end{tabularx}
-
-Los contactos enumerados no se repiten. Esta comprobación de asignación
-no sustituye la configuración de multiplexación y software: se deben
-habilitar esas funciones y evitar sus alternativas en el mismo contacto.
-No constituye todavía la asignación completa del módulo; faltan señales
-de supervisión, alimentación, gestión de arranque y otros buses.
-
-\subsubsection{Conexión al módulo de actitud}
-Se utiliza un conector JST GH vertical de tres contactos
-\texttt{BM03B-GHS-TBT}, con carcasa de cable \texttt{GHR-03V-S}
-y contactos crimpados \texttt{SSHL-002T-P0.2}.
-Se adopta conductor AWG 28 dentro del rango publicado de la familia.
-La serie ofrece paso de 1,25 mm, polarización y bloqueo mecánico
-\cite{jstgh}. Estas características permiten una conexión compacta y
-reducen la posibilidad de inversión o desconexión accidental. Debe
-comprobarse el espacio de inserción vertical y sujetarse el arnés para
-no transmitir esfuerzos a las soldaduras.
-
-\begin{tabularx}{\textwidth}{L{1.5cm}L{3cm}X}
-\toprule Contacto & Red en J\_ADCS & Conexión y sentido \\
-\midrule
-1 & GND & Referencia común de señales. \\
-2 & ADCS\_TX & Salida del computador a 3,3 V hacia RX externo. \\
-3 & ADCS\_RX & Entrada al computador desde TX externo a 3,3 V. \\
-\bottomrule
-\end{tabularx}
-
-La numeración es una decisión del diseño, no un estándar de pinout UART.
-Debe conservarse en ambos extremos y verificarse con el dibujo del
-fabricante, evitando invertir la vista del lado de acoplamiento.
-El módulo de actitud recibe su energía externamente; este conector
-transporta señales y referencia, sin alimentar actuadores.
-El arnés tendrá inicialmente una longitud máxima de 150 mm, como
-hipótesis geométrica para el diseño 1U que deberá verificarse en montaje.
-Esta longitud no demuestra por sí sola integridad de señal.
-
-\subsubsection{Conexión de telemetría al EPS}
-Se separa J\_EPS en J\_EPS\_PWR y J\_EPS\_SIG.
-La separación permite dimensionar contactos y cable de potencia a
-partir de su corriente, sin imponer ese tamaño a las señales.
-También permite comprobar la continuidad del arnés de telemetría por
-separado. Esta división añade un conector y exige controlar la conexión
-de señales cuando alguno de los extremos no está alimentado.
-
-J\_EPS\_SIG utiliza \texttt{BM05B-GHS-TBT}, carcasa
-\texttt{GHR-05V-S} y contactos \texttt{SSHL-002T-P0.2}, con cable
-AWG 28. Emplear cinco contactos lo distingue físicamente del conector
-de actitud de tres contactos. El uso de una misma familia simplifica
-la preparación del arnés y de las huellas, sin hacer intercambiables
-los conjuntos de diferente tamaño.
-
-\begin{tabularx}{\textwidth}{L{1.5cm}L{3cm}X}
-\toprule Contacto & Red & Función \\
-\midrule
-1 & GND & Referencia común de señales. \\
-2 & EPS\_SCL & Reloj I2C, dominio externo de 3,3 V. \\
-3 & EPS\_SDA & Datos I2C, dominio externo de 3,3 V. \\
-4 & EPS\_PGOOD & Estado de potencia hacia supervisión local. \\
-5 & EPS\_ALERT\_N & Aviso del EPS hacia el computador. \\
-\bottomrule
-\end{tabularx}
-
-La asignación de PGOOD a la supervisión y de ALERT a un GPIO se cerrará
-al diseñar el arranque y la adaptación. No se conectan arbitrariamente
-a entradas del SoM. Se fija como hipótesis inicial un arnés de hasta
-150 mm. La capacitancia del arnés, conectores, adaptador y pines se
-incluirá al calcular los pull-ups; la longitud no sustituye ese cálculo.
-El retorno de señales debe compartir referencia con potencia, evitando
-que el conductor delgado del arnés se convierta en el retorno de carga
-si se desconecta J\_EPS\_PWR. No se especifica conexión en caliente.
-
-La ficha vigente de la familia GH publica un intervalo de
-$-40$ a $+105\,^{\circ}\mathrm{C}$ y 1 A con conductor AWG 26
-\cite{jstgh}. La corriente citada no se extrapola al AWG 28 ni se
-utiliza para dimensionar la alimentación de la tarjeta. La selección
-es para señales; tampoco acredita calificación espacial o resistencia
-del conjunto frente a vibración. Antes de liberar la BOM deben
-verificarse los sufijos de suministro, el plano y el rango térmico
-de las referencias exactas adquiridas.
-
-\subsubsection{Conexiones que requieren dimensionamiento adicional}
-J\_EPS\_PWR se seleccionará después de sumar las corrientes por riel,
-incluyendo transmisión de radio y simultaneidad. Los 3 A asignados al
-SoM no representan la corriente total. La caída de tensión se evaluará
-en el trayecto completo de ida y retorno, contactos, protecciones y
-pistas; no se justificará capacidad mediante reparto ideal de corriente
-entre contactos paralelos.
-La cámara mantiene su enlace USB3 y requiere un conector apropiado
-para esa interfaz. Su conjunto de alimentación externo debe cerrar
-el tratamiento de VBUS. No se sustituye por un conector GH.
-El SPI permanece como pistas internas entre las dos secciones de la
-misma PCB. No se añade un conector entre computador y comunicaciones.
-
-\subsection{Adaptación de niveles de la UART de actitud}
-La UART se implementa mediante el TXU0202DCUR, con un canal desde el
-computador hacia actitud y otro en sentido opuesto. La dirección fija
-corresponde a la función TX/RX y evita controles de dirección adicionales.
-La alternativa SN74AXC2T245 admite direcciones configurables y umbrales
-especificados por intervalos de alimentación; se conserva como alternativa
-si la revisión de márgenes exige modificar el traductor
-\cite{txu0202,axc2t245}. La selección actual permite la captura inicial,
-pero no se considera una validación completa del bloque.
-
-\subsubsection{GPIO de habilitación y estados de arranque}
-Se asigna GPIO\_1, contacto X1.206 del Verdin, a
-\texttt{UART\_ADCS\_EN}. Corresponde a GPIO1\_IO00 del SoC y a la
-función GPIO1\_IO0, ALT0. Es un GPIO dedicado y no comparte los
-contactos asignados a UART\_1, I2C\_1 o SPI\_1. La tabla 17 del
-Verdin indica polarización hacia bajo en el estado de reinicio y la
-tabla 21 identifica su función GPIO \cite{verdinds}.
-
-La red se conecta a OE, pin 6 del TXU0202, y lleva R\_OE de
-10 k$\Omega$ a GND. Un nivel bajo mantiene las salidas deshabilitadas.
-El estado de reinicio documentado no equivale a una garantía de que
-el cargador de arranque y Linux conservarán ese estado: ambos deberán
-mantener el GPIO bajo hasta configurar TX en reposo alto y verificar
-las alimentaciones. La implementación de software queda fuera de esta
-práctica, pero esta condición se registra como requisito de integración.
-La resistencia no puede contrarrestar una salida GPIO activamente alta.
-
-La secuencia prevista es: GPIO bajo; estabilización de fuentes;
-configuración de UART y desactivación de polarizaciones internas que
-interfieran con las externas; TX en reposo alto; habilitación del enlace.
-Antes del apagado controlado se deshabilita OE. En reinicio se vuelve
-al estado de deshabilitación. Los datos recibidos durante una transición
-se descartan; una transición eléctrica no debe interpretarse como orden
-válida de actuación. No se incluye suspensión profunda como modo
-operativo validado de este bloque.
-
-\subsubsection{Origen de los 1,8 V y presupuesto de alimentación}
-VCCA, pin 3, se conecta a \texttt{PWR\_1V8\_MOCI}, contacto X1.214.
-La salida documentada tiene capacidad máxima de 250 mA. La guía Verdin
-recomienda utilizar este dominio para circuitos conectados a sus señales,
-por su relación con las fuentes de E/S y la prevención de alimentación
-involuntaria \cite{verdinds,verdinguide}. No se conecta a una fuente
-externa de 1,8 V ni se confunde con una entrada de alimentación del SoM.
-
-VCCB, pin 7, se conecta al riel local de 3,3 V de la tarjeta.
-El GND del traductor, el del SoM y J\_ADCS.1 comparten referencia.
-Se coloca un condensador de 100 nF entre cada alimentación y GND,
-próximo al contacto correspondiente \cite{txu0202}.
-
-Se reserva inicialmente un presupuesto de diseño de 1 mA del riel
-PWR\_1V8\_MOCI para el conjunto UART. Equivale al 0,4\,\% de los
-250 mA publicados; no es un consumo máximo demostrado ni autoriza
-ignorar las demás cargas de esa salida. La suma de cargas y los
-transitorios se verificarán en el presupuesto general. La capacidad
-de la fuente y la demanda real se mantienen como magnitudes distintas.
-
-Para el análisis se conservan envolventes de 1,65--1,95 V y 3,0--3,6 V.
-Son límites que deberá satisfacer el diseño, no tolerancias atribuidas
-sin comprobación a la salida de Toradex. Si los rieles o las caídas
-reales exceden estas envolventes, se recalculan los márgenes.
-
-\subsubsection{Conexiones completas del traductor}
-Los números corresponden exclusivamente al encapsulado DCU.
-Los designadores funcionales se convertirán en designadores únicos
-al anotar el proyecto Altium.
-\begin{tabularx}{\textwidth}{L{1cm}L{1.8cm}X}
-\toprule Pin & Nombre & Conexión \\
-\midrule
-1 & B2 & J\_ADCS.3, ADCS\_RX; pull-up de 10 k$\Omega$ a 3,3 V. \\
-2 & GND & Referencia común y retornos de desacoplo. \\
-3 & VCCA & X1.214, PWR\_1V8\_MOCI; 100 nF a GND. \\
-4 & A2Y & X1.129, UART\_1\_RXD; pull-up de 47 k$\Omega$ a VCCA. \\
-5 & A1 & X1.131, UART\_1\_TXD; pull-up de 10 k$\Omega$ a VCCA. \\
-6 & OE & X1.206, GPIO\_1; pull-down de 10 k$\Omega$ a GND. \\
-7 & VCCB & Riel local de 3,3 V; 100 nF a GND. \\
-8 & B1Y & J\_ADCS.2, ADCS\_TX. \\
-\bottomrule
-\end{tabularx}
-
-Las resistencias definen estados en alta impedancia; no son
-terminaciones de línea ni adaptadores de tensión. Durante el reinicio,
-las polarizaciones internas de los pines UART pueden competir con las
-externas. No se supone reposo alto garantizado hasta configurar los
-pines; OE permanece bajo durante esa etapa.
-
-\subsubsection{Contrato eléctrico del módulo externo}
-El módulo de actitud recibe su alimentación externamente. Se exige
-que su salida TX entregue al menos 2,9 V en alto y como máximo 0,2 V
-en bajo, con carga de hasta 0,5 mA. Se exige a su entrada RX reconocer
-alto a partir de 2,52 V y bajo hasta 0,90 V. Son especificaciones
-impuestas al módulo externo idealizado, no resultados de un módulo
-comercial ensayado.
-
-La entrada RX externa llevará polarización de 47 k$\Omega$, 1\,\%,
-a su propio riel, limitado a 3,6 V. Su fuga será como máximo
-10 $\mu$A por pin, incluyendo la condición de módulo apagado; sus
-pines tolerarán señales hasta 3,6 V sin alimentar su fuente interna.
-Se conserva el arnés de hasta 150 mm y la referencia GND común.
-El límite de 10 $\mu$A no incluye una resistencia que conecte
-intencionadamente la línea a un riel apagado de baja impedancia;
-el módulo externo debe resolver ese caso para cumplir el contrato.
-
-La protección de apagado del traductor local no detecta por sí sola
-que el ADCS remoto se ha apagado mientras VCCA y VCCB siguen activas.
-Por ello el contrato de alta impedancia es obligatorio. Si no se cumple,
-se modifica el aislamiento externo o la interfaz. No se especifica
-conexión en caliente.
-
-\subsubsection{Cálculos y márgenes: resultados y límites}
-Para las resistencias seleccionadas se consideran tolerancia inicial
-del 1\,\% y coeficiente térmico de 100 ppm/$^{\circ}$C.
-En $-40$ a $+85\,^{\circ}$C, la desviación máxima respecto a
-$25\,^{\circ}$C es 65 $^{\circ}$C. Como envolvente conservadora:
-\begin{align}
-R_{\min}&=R_n(1-0,01)(1-0,0065)=0,983565R_n,\\
-R_{\max}&=R_n(1+0,01)(1+0,0065)=1,016565R_n.
-\end{align}
-Para 47 k$\Omega$: $R_{\min}=46,228$ k$\Omega$ y
-$R_{\max}=47,779$ k$\Omega$. Para 10 k$\Omega$:
-$R_{\min}=9,836$ k$\Omega$ y $R_{\max}=10,166$ k$\Omega$.
-Estas cotas no incluyen envejecimiento; una deriva adicional deberá
-incorporarse si se convierte en requisito de diseño.
-
-El cambio de 10 k$\Omega$ a 47 k$\Omega$ en A2Y reduce la corriente
-que debe absorber el traductor cuando RX está en bajo. Usando la fuga
-de 4 $\mu$A de la tabla GPIO de NXP como cota conservadora y sin
-polarización interna adicional habilitada \cite{imx8mpiec}:
-\begin{equation}
-I_{A2Y,L}\leq\frac{1,95}{46227,555}+4\ \mu\mathrm{A}
-=46,18\ \mu\mathrm{A}<100\ \mu\mathrm{A}.
-\end{equation}
-Así se puede utilizar la especificación del TXU0202 para carga de
-100 $\mu$A: $V_{OH}\geq V_{CCO}-0,1$ V y $V_{OL}\leq0,1$ V.
-No se utiliza esta especificación con una carga mayor.
-Con $V_{IH}=0,7V_{DD}$ y $V_{IL}=0,3V_{DD}$ del SoC,
-y evaluando extremos independientes de la envolvente:
-\begin{align}
-NM_H&\geq(1,65-0,1)-0,7(1,95)=0,185\ \mathrm{V},\\
-NM_L&\geq0,3(1,65)-0,1=0,395\ \mathrm{V}.
-\end{align}
-Estos resultados corresponden al recorrido traductor hacia RX del
-Verdin y a las condiciones de carga indicadas; no validan los demás
-recorridos automáticamente.
-
-Para B1Y se limita la carga estática externa mediante el contrato:
-\begin{equation}
-I_{B1Y,L}\leq\frac{3,6}{46227,555}+10\ \mu\mathrm{A}
-+0,05\ \mu\mathrm{A}=87,93\ \mu\mathrm{A}<100\ \mu\mathrm{A}.
-\end{equation}
-El último término corresponde a la envolvente de fuga del TVS a su
-tensión de trabajo. Resultan $NM_H\geq2,9-2,52=0,38$ V y
-$NM_L\geq0,90-0,1=0,80$ V hacia el receptor externo. El margen
-se consume con ruido, diferencias de tierra y caída en el arnés;
-no se interpreta como una tensión de ruido permitida sin presupuesto.
-
-La dirección SoM hacia A1/OE necesita especial atención. NXP especifica
-$V_{OH}\geq0,8V_{DD}$ y $V_{OL}\leq0,2V_{DD}$ en las condiciones
-de carga de su tabla GPIO. TI tabula para entrada de 1,65 V los
-extremos Schmitt $V_{T+\max}=1,13$ V y $V_{T-\min}=0,35$ V.
-En ese punto documentado, con ambos dominios a 1,65 V:
-\begin{align}
-NM_H&\geq0,8(1,65)-1,13=0,190\ \mathrm{V},\\
-NM_L&\geq0,35-0,2(1,65)=0,020\ \mathrm{V}.
-\end{align}
-El margen bajo es reducido. No se extrapola esa fila de TI a toda
-la banda 1,65--1,95 V ni se interpolan umbrales como si fueran límites
-garantizados. Por tanto, no se declara cerrado el margen de A1/OE
-en toda la envolvente. Para liberarlo se requiere información de
-fabricante que cubra el intervalo o sustituir el traductor por una
-solución con límites adecuados y explícitos. Una medición típica puede
-apoyar la revisión, pero no demuestra un máximo garantizado.
-
-Análogamente, los niveles externos propuestos ofrecen márgenes de
-0,98 V y 0,69 V hacia B2 en el punto TI de 3,0 V
-($V_{T+\max}=1,92$ V; $V_{T-\min}=0,89$ V). No se atribuyen
-estos márgenes a toda la banda 3,0--3,6 V sin comprobarla.
-
-En OE deshabilitado, la cota de fuga de 4 $\mu$A del SoC más
-2 $\mu$A del traductor produce:
-\begin{equation}
-V_{OE}\leq6\ \mu\mathrm{A}\cdot10165,65\ \Omega
-=0,0610\ \mathrm{V}.
-\end{equation}
-La polarización interna hacia bajo del GPIO ayuda en reinicio. Esta
-cota supone GPIO en alta impedancia; no describe una salida activa.
-
-Para los pull-ups de 10 k$\Omega$, las nuevas cotas térmicas dan
-0,1983 mA y 0,3660 mA a 1,95 V y 3,6 V, respectivamente. La mayor
-disipación por resistencia de este grupo es 1,318 mW. Para el pull-up
-local de 47 k$\Omega$ a 1,95 V resulta 0,0823 mW.
-El presupuesto estático conservador del lado A, sumando tres ramas
-de polarización y reservando 6 $\mu$A para el traductor, es inferior
-a 0,45 mA. La reserva de 1 mA no queda demostrada para todo régimen
-dinámico por este cálculo estático.
-
-\subsubsection{Referencias de soporte y protección}
-Se proponen las siguientes referencias para captura y preparación de
-librerías; esta lista no sustituye la BOM exportada desde Altium.
-\begin{longtable}{L{2.5cm}L{1cm}L{5cm}L{4cm}}
-\toprule Función & Cant. & Referencia & Especificación \\
+\begin{longtable}{L{1.2cm}L{4.1cm}L{8.3cm}}
+\toprule Bloque & Componente o interfaz & Asignación y condición \\
 \midrule\endhead
-Traductor & 1 & TXU0202DCUR & DCU, ocho contactos. \\
-Pull-up A1 y B2; pull-down OE & 3 & RC0603FR-0710KL & 10 k$\Omega$, 1\,\%, 0603. \\
-Pull-up A2Y & 1 & RC0603FR-0747KL & 47 k$\Omega$, 1\,\%, 0603. \\
-Desacoplo A y B & 2 & C0603C104K3RACTU & 100 nF, 25 V, 10\,\%, X7R, 0603. \\
-Protección primaria TX y RX & 2 & ESD321DPYR & DPY, TVS a GND. \\
+J1 & Hirose DM3NW-SF-PEJ(800) & Zócalo microSD; bus SD de cuatro bits y alimentación conmutada. \\
+J2 & JST BM03B-GHS-TBT & 1: GND; 2: ADCS\_TX; 3: ADCS\_RX. TX/RX se nombran desde el OBC. \\
+J3 & JST BM05B-GHS-TBT & 1: GND; 2: EPS\_SCL; 3: EPS\_SDA. Contactos 4 y 5 reservados para PGOOD y ALERT, sin circuito de supervisión cerrado. \\
+J4 & Würth 692122030100 & USB3 tipo A anfitrión; VBUS desde U4, retorno y seis señales de datos. \\
+J5 & Entrada de potencia provisional & 1: +5V\_SOM; 2: GND. Requisito: 5,10 V $\pm1\,\%$ en la placa, capacidad continua $\geq4,5$ A para OBC y cámara. \\
+Mantenimiento & USB\_1 y UART\_3 & Recursos reservados para recuperación y consola; conectores y adaptación pendientes. \\
 \bottomrule
 \end{longtable}
+Los designadores corresponden a la hoja del computador y requieren anotación única en el proyecto integrado. J5 representa la interfaz eléctrica; su referencia, cable, terminales y huella no se consideran validados. El Molex 43650-0200 permanece como candidato, no como componente implementado. La entrada de 3,3 V es independiente y su capacidad debe incluir microSD, traductores, auxiliares y comunicaciones.
 
-Las resistencias RC tienen potencia nominal de 0,1 W a 70 $^{\circ}$C;
-su curva de reducción térmica debe asociarse a la librería/BOM al
-liberarla \cite{yageo10k,yageo47k}. Las disipaciones calculadas son
-pequeñas respecto a esa potencia, pero no se afirma que conserve
-0,1 W a cualquier temperatura. Se elige 0603 para facilitar montaje
-e inspección y porque no existe aquí una exigencia de miniaturización
-que justifique un formato menor.
+Para J2/J3 se seleccionan carcasas GHR-03V-S/GHR-05V-S y terminales SSHL-002T-P0.2, con arnés AWG 28 de hasta 150 mm como hipótesis geométrica. La familia GH permite bloqueo y polarización mecánica; esa selección para señales no dimensiona el conector de potencia \cite{jstgh}. Se exige masa común, sin utilizar el retorno delgado de señales para transportar corriente de carga; no se especifica conexión en caliente.
 
-Los condensadores de 25 V sustituyen la especificación inicial de
-10 V sin cambiar su función ni su valor nominal. La tensión de trabajo
-de 3,6 V representa el 14,4\,\% de su tensión nominal. Esto no
-garantiza por sí solo la capacitancia efectiva: tolerancia, temperatura,
-sesgo DC y envejecimiento deben evaluarse. Considerando únicamente
-10\,\% de tolerancia y 15\,\% térmico, la cota sería 76,5 nF;
-no se presenta como mínimo total garantizado \cite{kemet100n}.
+\subsection{Asignación de señales del computador}
+Los números siguientes son contactos de X1, no bolas del SoC ni pines de los conectores externos. La asignación requiere configurar el multiplexor y las direcciones en el software futuro \cite{verdinds}.
+\begin{longtable}{L{3.1cm}L{2.1cm}L{8.4cm}}
+\toprule Función & Contacto X1 & Uso \\
+\midrule\endhead
+UART\_1 TX/RX & 131 / 129 & ADCS mediante U2. \\
+I2C\_1 SCL/SDA & 14 / 12 & EPS mediante U3. \\
+SPI\_1 CLK/MISO/MOSI/CS & 196 / 198 / 200 / 202 & Enlace interno con el radio mediante U1. \\
+GPIO\_1 / GPIO\_2 & 206 / 208 & OBC\_UART\_OE / OBC\_SPI\_OE. \\
+GPIO\_3 & 210 & OBC\_RADIO\_GPIO0\_1V8, entrada. \\
+GPIO\_4 & 212 & OBC\_RADIO\_RESET\_N\_1V8, salida. \\
+GPIO\_5\_CSI / GPIO\_6\_CSI & 216 / 218 & OBC\_RADIO\_GPIO2\_1V8 / GPIO3\_1V8, entradas. \\
+PWR\_1V8\_MOCI & 214 & Salida +1V8\_SOM, máximo documentado 250 mA. \\
+SD\_1 & 70--84, pares & Memoria de misión; asignación detallada en la sección de almacenamiento. \\
+UART\_3 TX/RX & 149 / 147 & Reserva para consola, no acceso físico completado. \\
+\bottomrule
+\end{longtable}
+Los GPIO reservados a CSI se reutilizan porque la cámara seleccionada usa USB. No pueden habilitarse simultáneamente para CSI u otra función alternativa.
 
-Se propone un ESD321DPYR por línea, inmediatamente junto al conector:
-pin 1 a la señal y pin 2 a GND. El pinout corresponde a DPY; no se
-debe reutilizar el de DYA, que tiene numeración diferente.
-El retorno será corto y directo al plano de referencia, evitando
-desviar la descarga a través del SoM. La fuga de trabajo y la baja
-capacitancia son compatibles con el presupuesto estático anterior
-\cite{esd321}. No se conectan estos TVS al riel de 1,8 V.
+\subsection{UART del módulo de actitud}
+Se utiliza UART\_1 a 115200 bit/s, 8N1, punto a punto. El controlador externo recibe comandos y devuelve mediciones; las etapas de potencia de actuadores quedan fuera de la PCB. El techo previo a cabeceras es $115200/10=11520$ bytes/s; no es una tasa de telemetría medida.
 
-Esta selección es protección primaria propuesta, no inmunidad ESD
-validada. El fabricante publica una tensión de limitación típica de 6,8 V a
-16 A TLP, mientras que el máximo absoluto de entrada del TXU0202 es
-6,5 V. Por ello no se afirma que el TVS mantenga siempre el pin dentro
-de ese límite. Tampoco se interpreta la diferencia como una prueba
-automática de fallo bajo ESD: son condiciones de ensayo distintas.
-Antes de liberar la protección deben coordinarse las curvas de pulso,
-el circuito secundario si resulta necesario y las inductancias del
-montaje. No se asigna una clasificación IEC al conjunto a partir de
-la clasificación del diodo.
+U2, TXU0202DCUR, adapta un canal en cada sentido con dirección fija, evitando señales adicionales de dirección. Se consideró SN74AXC2T245 como alternativa configurable \cite{txu0202,axc2t245}. U2 recibe VCCA=+1V8\_SOM (pin 3), VCCB=3V3 (7), GND (2) y 100 nF a GND en cada alimentación. Sus conexiones son:
+\begin{tabularx}{\textwidth}{L{2cm}X}
+\toprule Pin U2 & Red y polarización \\
+\midrule
+1, B2 & ADCS\_RX, desde J2.3; R5 de 10 k$\Omega$ a 3V3. \\
+4, A2Y & OBC\_UART1\_RX\_1V8 hacia X1.129; R3 de 47 k$\Omega$ a +1V8\_SOM. \\
+5, A1 & OBC\_UART1\_TX\_1V8 desde X1.131; R4 de 10 k$\Omega$ a +1V8\_SOM. \\
+8, B1Y & ADCS\_TX hacia J2.2 y RX del módulo externo. \\
+6, OE & OBC\_UART\_OE desde X1.206; R2 de 10 k$\Omega$ a GND. \\
+\bottomrule
+\end{tabularx}
 
-\subsubsection{Paso al esquemático y criterio de cierre}
-Puede iniciarse la captura del bloque en la hoja del computador,
-incluyendo conector, traductor, polarizaciones, desacoplo y puntos de
-prueba de VCCA, VCCB, OE, TX, RX y GND. El conector de actitud no
-transporta potencia de actuadores. El bloque permanece identificado
-como en revisión hasta resolver los márgenes de entrada y la
-coordinación ESD anteriores.
+\subsubsection{Contrato externo y estados de arranque}
+El ADCS debe entregar $V_{OH}\geq2,9$ V y $V_{OL}\leq0,2$ V con carga de hasta 0,5 mA. Su RX debe reconocer alto desde 2,52 V y bajo hasta 0,90 V, con pull-up de 47 k$\Omega$ a su propio riel. Se exige tolerancia a señales de hasta 3,6 V sin alimentación y fuga $\leq10\ \mu$A por pin; estos son requisitos del módulo idealizado. Un pull-up conectado a un riel apagado debe incluirse explícitamente en ese análisis.
 
-Se revisarán además numeración símbolo--huella, estados de arranque,
-ausencia de conflictos de multiplexación y conectividad de tierras.
-El ERC y la revisión manual se ejecutarán sobre el circuito capturado.
-Comenzar la captura no implica que el informe completo esté terminado:
-las demás interfaces, alimentación de tarjeta, memoria, restricciones
-de fabricación, BOM y costos conservan sus etapas de desarrollo.
+OE permanece bajo hasta estabilizar fuentes y configurar TX en reposo alto; se deshabilita antes del apagado. El pull-down define el estado en alta impedancia, pero no impide que un software active el GPIO incorrectamente. Se reserva 1 mA del riel de 1,8 V para el bloque UART, sujeto a revisión dinámica y a la suma de las demás cargas.
+
+\subsubsection{Márgenes y límites del cálculo}
+Para resistencias de 1\,\% y 100 ppm/$^\circ$C, tomando una desviación de 65 $^\circ$C respecto a 25 $^\circ$C:
+\begin{equation}
+R_{\min}=0,983565R_n,\qquad R_{\max}=1,016565R_n.
+\end{equation}
+Con envolventes de 1,65--1,95 V y 3,0--3,6 V, el pull-up de 47 k$\Omega$ limita la corriente baja en RX del SoM a
+\begin{equation}
+I_{RX,L}\leq\frac{1,95}{46227,555}+4\ \mu\mathrm{A}=46,18\ \mu\mathrm{A}.
+\end{equation}
+Esto permite utilizar la especificación de salida de U2 a 100 $\mu$A: $V_{OH}\geq V_{CCO}-0,1$ V y $V_{OL}\leq0,1$ V. Frente a umbrales $0,7V_{DD}/0,3V_{DD}$, los márgenes conservadores son
+\begin{equation}
+NM_H\geq0,185\ \mathrm{V},\qquad NM_L\geq0,395\ \mathrm{V}.
+\end{equation}
+Para A1/OE, en el punto tabulado de 1,65 V, los márgenes calculados son 0,190 V en alto y 0,020 V en bajo \cite{txu0202,imx8mpiec}. El margen bajo es reducido y esos valores no se extrapolan a toda la envolvente. Con GPIO en alta impedancia, una fuga conjunta de 6 $\mu$A sobre el pull-down da $V_{OE}\leq0,061$ V. Los pull-ups de 10 k$\Omega$ absorben hasta 0,198 mA a 1,95 V y 0,366 mA a 3,6 V; la mayor disipación calculada es 1,318 mW.
+
+La captura incluye desacoplos de 100 nF/16 V. La referencia anterior de 25 V se conserva solo como alternativa de selección; no se atribuye al componente colocado sin verificar su parámetro comercial. La protección ESD321 considerada para TX/RX no se presenta como montada ni validada. Permanecen abiertos los márgenes en toda la envolvente, la coordinación ESD y la verificación de los modelos.
+
+\subsection{Adaptación I2C hacia potencia}
+U3, PCA9306DCUR, conserva el funcionamiento bidireccional de drenador abierto. SCL1/SDA1 (3/4) se conectan a X1.14/X1.12; SCL2/SDA2 (6/5) a EPS\_SCL/EPS\_SDA. VREF1 (2) recibe +1V8\_SOM y GND (1) el retorno común. VREF2 y EN (7/8) se unen y polarizan desde 3V3 mediante R6 de 200 k$\Omega$, con C14 de 100 pF a GND; no se conectan directamente a 3V3 \cite{pca9306}.
+
+R7/R8 y R9/R10 son pull-ups de 4,7 k$\Omega$ hacia 1,8 V y 3,3 V, respectivamente. No se presupone que el SoM incluya estos pull-ups \cite{verdinguide}. Para una estimación de primer orden con $C_b=100$ pF y 100 kHz:
+\begin{equation}
+t_r\approx0,8473R_pC_b=0,398\ \mu\mathrm{s}.
+\end{equation}
+El resultado se compara con el límite de 1 $\mu$s de Standard-mode; la capacitancia es un supuesto que incluye ambos extremos y el arnés, no una medición. Las dos ramas aportan en bajo aproximadamente
+\begin{equation}
+I_{L,\mathrm{nom}}\approx\frac{1,8+3,3}{4700}=1,085\ \mathrm{mA}.
+\end{equation}
+La aceptación exige revisar tolerancias, corriente absorbida por el extremo activo, caída del traductor y forma de onda; tampoco deben añadirse pull-ups externos sin recalcular su paralelo. Quedan por verificar la secuencia cuando 3V3 permanece activa y +1V8\_SOM se apaga, la corriente de polarización hacia VREF1 y las señales PGOOD/ALERT reservadas.
+
+\subsection{Adaptación interna de SPI y control del radio}
+Este apartado describe exclusivamente los circuitos ubicados en la hoja del computador. U1, TXU0304PWR, recibe VCCA=1,8 V y VCCB=3,3 V: A1/A2/A3 (2/3/4) reciben MOSI/SCK/CS del SoM y B1Y/B2Y/B3Y (13/12/11) los entregan al radio; B4 (10) recibe MISO y A4Y (5) lo devuelve al SoM. CS es activo en bajo. Cada alimentación lleva 100 nF a GND \cite{txu0304}.
+
+U6 usa el mismo componente con VCCA=3,3 V y VCCB=1,8 V. A1/A2/A3 reciben GPIO0/GPIO2/GPIO3 del radio; sus salidas B1Y/B2Y/B3Y van a X1.210/216/218. B4 recibe el RESET de X1.212 y A4Y lo entrega al puerto RESET. Los GPIO del radio se destinan a salidas de estado y el SoM los recibe como entradas; una función que necesite dirección contraria requiere revisar U6.
+
+Los OE de U1 y U6 comparten OBC\_SPI\_OE, X1.208, con pull-down de 10 k$\Omega$. RESET lleva 10 k$\Omega$ a GND del lado del radio para mantenerlo activo mientras U6 está deshabilitado. El arranque exige RESET bajo, CS alto y reloj inactivo; luego se habilitan los traductores y se libera RESET. La deselección del radio con U1 deshabilitado necesita verificar la polarización de CS en el circuito integrado. La reutilización del traductor reduce referencias de librería; no elimina la comprobación de umbrales, temporización, dirección de puertos y multiplexación.
+
+\subsection{USB de cámara y alimentación conmutada}
+Se adopta conexión directa de USB\_2 a J4 y cable USB3 tipo A--Micro-B hacia la cámara externa. La energía procede de la entrada EPS de nuestra PCB a través de U4, no de un inyector o fuente adicional junto a la cámara. Control e imágenes comparten el enlace.
+\begin{tabularx}{\textwidth}{L{2.7cm}L{2.4cm}X}
+\toprule Red & Contacto X1 & Contacto J4 \\
+\midrule
+CAM\_USB\_D\_N / P & 181 / 183 & 2 / 3, D$-$/D$+$. \\
+CAM\_USB\_RX\_N / P & 175 / 177 & 5 / 6, SSRX$-$/SSRX$+$. \\
+CAM\_USB\_TX\_N / P & 169 / 171 & 8 / 9, SSTX$-$/SSTX$+$. \\
+CAM\_USB\_EN / OC\_N & 185 / 187 & Control y fallo de U4; no contactos de J4. \\
+GND / Shield & Retorno común & 4, 7 y carcasa. \\
++5V\_CAM\_USB & Salida de U4 & 1, VBUS. \\
+\bottomrule
+\end{tabularx}
+No se añaden condensadores serie en SuperSpeed: el acoplamiento TX está en el SoM y el de la dirección contraria en el dispositivo USB \cite{verdinguide}. U5, TPD6E05U06RVZR, protege D$\pm$, RX$\pm$ y TX$\pm$; pines 14/13, 12/11 y 9/8, respectivamente, con 5/10 a GND y NC libres. Se coloca junto a J4 con retorno corto; su calificación no equivale a un ensayo ESD del conjunto \cite{tpd6e05}. Shield se une a GND al no haberse definido una tierra de chasis separada.
+
+U4, TPS2553DBVR, recibe +5V\_SOM en IN (1), entrega +5V\_CAM\_USB por OUT (6), conecta GND (2), EN (3) a CAM\_USB\_EN y FAULT (4) a CAM\_USB\_OC\_N. EN lleva 10 k$\Omega$ a GND y FAULT 10 k$\Omega$ a +1V8\_SOM. Su umbral alto de habilitación de 1,1 V permite control nominal a 1,8 V \cite{tps2553}.
+
+R11 de 26,1 k$\Omega$, 1\,\%, entre ILIM (5) y GND fija, según la tabla 2 de TI, un límite nominal de 0,9891 A y extremos de 0,9083--1,0810 A. Se reserva capacidad de 0,9 A para el puerto; el límite de protección no es el consumo de la cámara ni autoriza consumir 0,9 A antes de la configuración USB. C15 es 100 nF/16 V en entrada; C16 es 150 $\mu$F/16 V y C17 100 nF/16 V en salida. Para C16 con tolerancia de $\pm20\,\%$:
+\begin{equation}
+C_{16,\min}=150(0,8)=120\ \mu\mathrm{F}.
+\end{equation}
+Se verificó el valor nominal de C16 durante la captura; la referencia comercial debe satisfacer la tolerancia utilizada y conservar su polaridad en la BOM. Esta capacitancia sigue el criterio de la aplicación USB de TI. El dimensionamiento no sustituye la comprobación de caída de tensión, arranque y disipación de U4.
 
 \subsection{Necesidades de procesamiento y memoria}
-La cámara de referencia es la XIMEA
-\texttt{MQ022HG-IM-SM5X5-7NIR2}. Se adopta para el diseño académico un
-módulo Verdin iMX8M Plus Quad 4GB IT como computador principal, con RAM
-y memoria de arranque incorporadas. El almacenamiento persistente de
-imágenes, telemetría y resultados se implementa por separado. Los
-archivos se conservan en ese almacenamiento y se cargan en RAM cuando
-se procesan. La selección se desarrolla en la sección de componentes.
+El computador debe adquirir RAW16, organizar archivos, supervisar interfaces y preparar los productos que se entregan al radio. Se separan RAM de trabajo, eMMC de arranque y microSD de misión. En un sensor espectral en mosaico, el cuadro bruto contiene una muestra por posición del sensor: no se multiplica su tamaño por el número de bandas. La representación reconstruida requiere su propio presupuesto.
 
-El alcance de cómputo considerado comprende adquisición RAW16, gestión
-de archivos y metadatos, preparación de datos para comunicaciones y
-supervisión de estados. No se presupone un algoritmo de inteligencia
-artificial ni se acredita procesamiento espectral avanzado o desempeño
-de control en tiempo real. Sus recursos y plazos deberán comprobarse
-si esas funciones se incorporan. Los presupuestos heredados se revisan
-con las características de los dispositivos elegidos.
-
-
-La evaluación del procesador deberá comprobar:
-\begin{itemize}
-\item Periféricos compatibles y simultáneos para cámara, memoria, radio, potencia y actitud.
-\item Ausencia de conflictos de multiplexación de pines en la configuración completa.
-\item Capacidad de transferir datos y atender interrupciones sin perder información.
-\item Memoria de programa, RAM y buffers suficientes; DMA cuando resulte necesario para las tasas acordadas.
-\item Recursos de arranque, reinicio, supervisión y programación, con estados definidos de las salidas.
-\end{itemize}
-
-Para un conjunto de $N_b$ imágenes de banda, cada una con $N_x\times N_y$ muestras y una profundidad de $b$ bits por muestra, el volumen ideal sin compresión es
-\begin{equation}
-D_{\mathrm{img}}=\frac{N_xN_yN_b b}{8}\quad[\mathrm{bytes}],
-\end{equation}
-Esta expresión supone muestras empaquetadas sin relleno. Si cada muestra
-ocupa un número entero de bytes, el factor $b/8$ se sustituye por
-$\lceil b/8\rceil$. El volumen real incluirá el relleno por línea y los
-metadatos del formato seleccionado.
-
-En una cámara con filtros espectrales en mosaico, un cuadro bruto contiene
-una muestra por posición del sensor, no una muestra de cada banda en cada
-posición. Si el sensor tiene $N_{x,s}\times N_{y,s}$ posiciones, el volumen
-ideal del cuadro bruto es
-\begin{equation}
-D_{\mathrm{RAW}}=\frac{N_{x,s}N_{y,s}b}{8}\quad[\mathrm{bytes}],
-\end{equation}
-con las mismas correcciones de empaquetado. El volumen reconstruido se
-calculará con las dimensiones reales de las imágenes de banda resultantes.
-Se definirá qué representación se almacena y transmite; no se sumarán
-ambas salvo que el sistema deba conservarlas simultáneamente.
-
-Si la arquitectura permite almacenar por bloques, la RAM no necesita contener una imagen completa. Como criterio de dimensionamiento se utilizará
-\begin{equation}
-M_{\mathrm{RAM}}\geq M_{\mathrm{base}}+M_{\mathrm{adq}}+M_{\mathrm{alm}}+M_{\mathrm{radio}}+M_{\mathrm{reserva}}.
-\end{equation}
-Los términos representan uso base del software previsto, buffers de adquisición, almacenamiento y radio, y reserva justificada. Su simultaneidad debe comprobarse; no se asignan valores sin conocer los buses y los modos de operación. Dos buffers de adquisición, por ejemplo, solo se justificarían si se necesita recibir un bloque mientras se procesa o almacena el anterior.
-
-Para el almacenamiento de misión se utilizará el siguiente criterio conservador de retención sin descarga:
-\begin{equation}
-C_{\mathrm{util}}\geq C_0+\dot{D}_{\mathrm{total}}T_{\mathrm{ret}}+C_{\mathrm{reserva}},
-\end{equation}
-donde $C_0$ es el volumen ya almacenado al comenzar el intervalo,
-$\dot{D}_{\mathrm{total}}$ es la generación prevista en bytes por día,
-incluyendo imágenes, telemetría y eventos, y $T_{\mathrm{ret}}$ se expresa
-en días. Así se evita contabilizar los eventos dos veces. La reserva es
-espacio libre adicional previsto para operación y contingencias; la
-capacidad útil excluye el espacio no disponible para datos de misión,
-como el ocupado por el formato o el software. ET-04 se conserva hasta
-justificar y documentar cualquier modificación.
+Los cálculos de cuadro, buffers y retención se reúnen en la sección de selección de componentes. La capacidad de catálogo del SoM no demuestra desempeño del algoritmo, compatibilidad del SDK ni control en tiempo real; esos aspectos necesitan verificación posterior.
 
 \subsection{Compatibilidad entre datos y comunicaciones}
 \label{sec:datos}
@@ -808,283 +358,79 @@ adquisición, el volumen conservado por captura y la capacidad del enlace.
 El computador seleccionado y la elección del radio deberán ser compatibles
 con este presupuesto y con las tasas de transferencia internas.
 
-\subsection{Alimentación y presupuesto de consumo}
-\subsubsection{Antecedentes y criterio de dimensionamiento}
-El cuadro 18 de la práctica 3 \cite{lab3} asigna a OBC y memoria 150 mW nominales y 300 mW máximos. Son estimaciones, no resultados de selección. Para observar su equivalencia a corriente, suponiendo que toda esa potencia se entrega en un único riel ideal de 3,3 V:
-\begin{equation}
-I_{\mathrm{nom}}=\frac{0,150}{3,3}\approx45,5\ \mathrm{mA},\qquad
-I_{\mathrm{max}}=\frac{0,300}{3,3}\approx90,9\ \mathrm{mA}.
-\end{equation}
-Estas corrientes son equivalencias de las estimaciones heredadas y no dimensionan todavía el conector ni constituyen un límite comprobado. Dado que la selección admite un procesador de aplicaciones o un módulo de cómputo, el presupuesto de 300 mW no se adopta como límite validado de la solución. El supuesto de un solo riel excluye pérdidas y debe sustituirse por el reparto real de consumos. La memoria puede presentar picos de escritura que no estén representados en el promedio heredado.
+\subsection{Alimentación, desacoplamiento y arranque del OBC}
+\label{sec:potencia_obc}
+El EPS debe entregar 5,10 V $\pm1\,\%$ en la entrada de la PCB y una capacidad continua mínima de 4,5 A para el SoM y la rama USB. Este contrato reemplaza el supuesto anterior de 5 V $\pm2\,\%$ en esa frontera. El intervalo es 5,049--5,151 V; se conserva como objetivo de distribución 4,75--5,25 V en los contactos del SoM, contenido en su rango recomendado de 3,135--5,5 V \cite{verdinds}.
 
-El subsistema externo de potencia se modela como una fuente que satisface
-las condiciones de entrada especificadas por este diseño. La estimación
-global heredada de 5 W no se impone como límite del diseño actualizado.
-Para la rama dedicada al computador se establece una capacidad de
-suministro de 3 A a 5 V, manteniendo una tolerancia de
-$\pm5\,\%$ en los pines del módulo. Esta capacidad no representa el
-consumo permanente ni incluye cámara, almacenamiento externo,
-comunicaciones o auxiliares. El requerimiento total de la PCB se
-obtendrá al completar esos bloques y sus pérdidas.
-
-Se especifica una tensión de entrada de $5\ \mathrm{V}\pm2\,\%$
-entre los nodos \texttt{+5V\_EPS\_IN} y GND de la PCB, después
-del conector de alimentación. El EPS debe satisfacer este contrato
-considerando las caídas anteriores a dicha frontera. La rama del SoM
-incorpora una protección independiente entre esta entrada y
-\texttt{+5V\_SOM}; su componente y ajustes requieren verificación
-eléctrica antes de cerrar la selección.
-El margen inferior de distribución a 3 A es
-\begin{equation}
-\Delta V_{\mathrm{distrib}}=4{,}90-4{,}75=0{,}15\ \mathrm{V},
-\qquad
-R_{\mathrm{trayecto,max}}=\frac{0{,}15}{3}
-=50\ \mathrm{m}\Omega.
-\end{equation}
-Esta resistencia equivalente incluye protección, distribución y
-retorno desde la frontera definida hasta los pines del módulo.
-El diseño debe quedar por debajo de esa cota para reservar margen
-frente a transitorios; consumirla por completo solo satisface el
-límite estático. La tensión especificada no sustituye la comprobación
-de arranque, sobreimpulso y respuesta a cambios de carga.
-
-Para cada riel se calculará la corriente máxima aplicable sumando dispositivos activos en cada modo y sus circuitos auxiliares. Si existe conversión local, su corriente de entrada se estimará mediante
-\begin{equation}
-I_{\mathrm{entrada}}=\frac{\sum_k V_k I_k}{\eta_{\mathrm{reg}}V_{\mathrm{entrada}}},
-\end{equation}
-Esta expresión supone una eficiencia equivalente para el conjunto de salidas. Si se emplean convertidores independientes, se calculará la potencia de entrada de cada uno con su eficiencia y carga, y se sumarán sus contribuciones junto con las cargas directas. El consumo propio solo se añadirá por separado cuando no esté incluido en la eficiencia utilizada, evitando contabilizarlo dos veces.
-
-
-\subsubsection{Desacoplo y evaluación de la protección del computador}
-La alimentación del SoM utiliza los contactos 251, 253, 255, 257 y
-259 de X1, unidos a \texttt{+5V\_SOM}; los contactos GND se conectan
-al retorno común. Se incorpora un banco en paralelo de cinco
-condensadores de 4,7 $\mu$F, 10 V, X5R, tolerancia del 10\,\% y
-encapsulado 0603, más uno de 22 $\mu$F, 10 V, X5R, tolerancia del
-20\,\% y encapsulado 0805. Este conjunto toma como base el circuito
-de referencia de Toradex, que indica su colocación próxima a los
-contactos de alimentación del zócalo \cite{verdinguide}.
+La guía de familia aporta envolventes de 8,25 W sostenidos y 12,5 W de pico; se usan para dimensionar, no como consumo medido de esta aplicación \cite{verdinguide}:
 \begin{align}
-C_{\mathrm{nom}}&=5(4{,}7)+22=45{,}5\ \mu\mathrm{F},\\
-C_{\min,\mathrm{tol}}&=5(4{,}7)(0{,}90)+22(0{,}80)
-=38{,}75\ \mu\mathrm{F},\\
-C_{\max,\mathrm{tol}}&=5(4{,}7)(1{,}10)+22(1{,}20)
-=52{,}25\ \mu\mathrm{F}.
+I_{\mathrm{sost}}&=8,25/4,75=1,737\ \mathrm{A},\\
+I_{\mathrm{pico}}&=12,5/4,75=2,632\ \mathrm{A}.
 \end{align}
-Los extremos anteriores incluyen únicamente tolerancia inicial;
-no son límites garantizados de capacidad efectiva en servicio.
-La selección comercial debe comprobar polarización continua,
-temperatura y envejecimiento. A 5,25 V se utiliza el 52,5\,\% de
-la tensión nominal de 10 V; esta relación no cuantifica la pérdida
-de capacitancia. La verificación de arranque debe incluir también
-la capacidad y la carga internas del módulo.
-
-Se evalúan dispositivos eFuse para la protección independiente de
-la rama. A 3 A, el TPS25947 especifica una resistencia máxima de
-45 m$\Omega$ para la envolvente de entrada y temperatura indicada
-en su tabla eléctrica \cite{tps25947}. Por tanto,
+Se reservan 3 A para el SoM. Con el extremo superior del límite USB:
 \begin{equation}
-\Delta V_{47}=3(0{,}045)=0{,}135\ \mathrm{V},\qquad
-P_{47}=3^2(0{,}045)=0{,}405\ \mathrm{W}.
+I_{\mathrm{reserva}}=3+1,081=4,081\ \mathrm{A}<4,5\ \mathrm{A}.
 \end{equation}
-Solo quedarían 15 mV del presupuesto de 150 mV para distribución,
-retorno y transitorios. No se considera cerrada esta selección.
-El TPS25948 ofrece una resistencia máxima de 20 m$\Omega$ a 3 A
-en las condiciones de su tabla eléctrica \cite{tps25948}, con
-caída de 60 mV y pérdidas de conducción de 0,180 W. Esta alternativa
-deja 90 mV de margen, pero requiere revisar su encapsulado PowerWCSP,
-la protección ante entrada negativa, la variante y los ajustes.
-El bloqueo de corriente inversa no demuestra protección ante
-polaridad invertida. Estos cálculos comparan conducción estática;
-no validan el comportamiento de arranque, sobrecorriente o térmico
-del circuito completo.
+El margen de 0,419 A debe cubrir los auxiliares de esta rama y revisarse con transitorios. Los 4,5 A no incluyen automáticamente una etapa RF adicional de 5 V ni las cargas del riel de 3,3 V. Si se conectan a esa misma salida EPS, se actualiza el requisito. La RAM/eMMC integrada no se suma nuevamente al consumo del módulo. Los presupuestos iniciales de 150--300 mW del computador y 5 W globales de la práctica 3 no dimensionan la arquitectura seleccionada.
 
-\subsubsection{Condiciones de arranque, reinicio y supervisión}
-El Verdin iMX8M Plus incorpora el circuito que inicia el encendido
-al aplicar la alimentación principal \cite{verdinds}. Para servicio
-se incorporan dos pulsadores normalmente abiertos a GND: uno en
-X1.246, red \texttt{OBC\_RECOVERY\_N}, y otro en X1.260, red
-\texttt{OBC\_RESET\_IN\_N}. El primero permite solicitar recuperación
-durante el encendido y el segundo reiniciar el módulo. Las entradas
-incluyen pull-ups internos de 10 k$\Omega$ y 100 k$\Omega$,
-respectivamente, por lo que no se añaden pull-ups externos a 3,3 V
-o 5 V \cite{verdinds}. La captura utiliza el símbolo de referencia
-\texttt{SW-WMF-TD-03XB}; la correspondencia física de sus contactos
-y la referencia comercial deben verificarse antes de liberar la BOM.
-El pin X1.249, \texttt{VCC\_BACKUP}, se mantiene separado de la
-alimentación principal mientras se define el respaldo del RTC.
+Para 3 A, la diferencia estática inferior respecto a 4,75 V permite como cota de trayecto:
+\begin{equation}
+\Delta V=5,049-4,75=0,299\ \mathrm{V},\qquad
+R_{\mathrm{trayecto}}<0,299/3=99,7\ \mathrm{m}\Omega.
+\end{equation}
+La cota comprende ida y retorno desde la frontera de entrada hasta el SoM y no debe consumirse por completo: se necesita margen dinámico y comprobar la caída común debida a la rama USB. El conector provisional no acredita capacidad de corriente ni caída de tensión.
 
-Se establecen condiciones de arranque y reinicio que eviten operaciones
-involuntarias mientras la alimentación se estabiliza y el computador
-inicializa sus periféricos. El computador deberá permanecer en reinicio
-hasta que su alimentación y las condiciones de arranque cumplan los
-requisitos del dispositivo seleccionado. Asimismo, se definirá su
-respuesta ante una caída de tensión fuera del intervalo de operación.
+\subsubsection{Desacoplamiento y protección}
+X1.251/253/255/257/259 se unen a +5V\_SOM y los GND al retorno común. C1--C5 son 4,7 $\mu$F/10 V y C6 es 22 $\mu$F/10 V. Con tolerancias de 10\,\% y 20\,\%, respectivamente:
+\begin{align}
+C_{\mathrm{nom}}&=45,5\ \mu\mathrm{F},\\
+C_{\min,\mathrm{tol}}&=38,75\ \mu\mathrm{F},\qquad
+C_{\max,\mathrm{tol}}=52,25\ \mu\mathrm{F}.
+\end{align}
+Son extremos de tolerancia inicial; falta incorporar sesgo DC, temperatura y envejecimiento. El banco se sitúa junto a los contactos de alimentación conforme a la referencia Toradex \cite{verdinguide}.
 
-Durante el arranque, la transmisión de radio permanecerá deshabilitada
-hasta recibir una autorización explícita del sistema, sin que ello
-implique necesariamente desactivar la recepción. La orden de captura
-de la cámara permanecerá inactiva hasta completar su alimentación y
-configuración. Para el almacenamiento se establecerán los estados
-inactivos de las señales de selección o escritura que correspondan a
-la interfaz elegida. Las salidas hacia los controladores de actitud
-adoptarán estados iniciales acordados con ese subsistema para evitar
-activaciones involuntarias.
+Se había seleccionado TPS259470L para una protección local del SoM, pero no quedó incorporado a esta captura. No se atribuye a la placa su limitación de corriente, protección inversa o supervisión. La versión actual recibe alimentación acondicionada del EPS; deben definirse y verificarse sus protecciones y secuencias. U4 protege exclusivamente la rama USB y no reemplaza una protección general de entrada. La evaluación anterior de eFuse se conserva como antecedente de selección, no como circuito montado.
 
-La implementación de estas condiciones se determinará con las hojas de
-datos de los componentes seleccionados. Se comprobarán los estados de
-los pines durante el encendido y el reinicio, los umbrales y tiempos de
-supervisión y las secuencias de alimentación. Cuando resulte necesario,
-se incorporarán resistencias de polarización, señales de habilitación
-o un supervisor externo. Su selección se justificará considerando las
-funciones ya integradas en cada dispositivo y el comportamiento cuando
-los bloques conectados no estén alimentados simultáneamente.
+\subsubsection{Reinicio y mantenimiento}
+SW1 une OBC\_RECOVERY\_N (X1.246) a GND y SW2 une OBC\_RESET\_IN\_N (X1.260) a GND. Se emplean entradas con polarización interna documentada por Toradex, sin pull-ups externos a 3,3 V o 5 V \cite{verdinds}. VCC\_BACKUP (X1.249) y el tratamiento completo de los controles no utilizados requieren cierre. USB\_1 y UART\_3 se reservan para recuperación y consola; los pulsadores por sí solos no completan el acceso de programación.
 
-La prevención de operaciones involuntarias durante el arranque se
-distingue de la protección de datos frente a una interrupción de energía
-durante una escritura. Esta última condición se evaluará con el
-almacenamiento seleccionado, su comportamiento ante pérdida de
-alimentación y los recursos disponibles para detectar y gestionar el
-evento. Por tanto, no se considerará resuelta únicamente mediante la
-polarización de señales o el reinicio del computador.
+El software futuro debe conservar OE de UART/SPI en bajo durante inicialización, mantener el radio en reset hasta configurar SPI y habilitar VBUS antes de enumerar la cámara. La prevención de órdenes involuntarias no garantiza integridad de archivos ante pérdida de energía; las escrituras de microSD requieren sincronización y gestión de apagado. Estas condiciones no han sido verificadas mediante ERC ni ensayos de arranque.
 
 \subsection{Espacio y condiciones de integración}
 El máximo preliminar de $90\times90$ mm corresponde a toda la PCB. No se establece un reparto porcentual entre central y radio sin conocer encapsulados y restricciones. El cierre mecánico requiere dimensiones útiles, agujeros, zonas de exclusión, altura admisible, posición de conectores y espacio para acceso de depuración.
 
 La integración de digital y RF obliga a acordar zonas funcionales y recorridos de corriente. No se prescribe partir el plano de tierra sin análisis: la continuidad de retornos y las recomendaciones de los componentes se revisarán en los puntos de restricciones. El rango industrial de temperatura, por sí solo, no acredita aptitud espacial; las simplificaciones académicas se conservarán explícitas.
 
-\subsection{Registro inicial de cambios}
-\begin{tabularx}{\textwidth}{L{1.1cm}XX}
-\toprule ID & Cambio o criterio adoptado & Justificación y efecto \\
+\subsection{Cambios de la sección central respecto de la arquitectura inicial}
+\begin{tabularx}{\textwidth}{L{1cm}XX}
+\toprule ID & Decisión & Efecto \\
 \midrule
-C-01 & Integrar central y comunicaciones en una PCB. & Actualización de la partición física asignada. IF-10/11 se vuelven internas; se comparte área y presupuesto eléctrico. \\
-C-02 & Corregir método de verificación de ET-07. & Usar condiciones de operación recomendadas en lugar de máximos absolutos, en coherencia con la guía 4 \cite{guia4}. \\
-C-03 & Complementar ET-08 con recursos y tasas. & La frecuencia no demuestra compatibilidad de cámara, memoria y periféricos. \\
-C-04 & Revisar presupuesto de datos frente al enlace. & 9600 bit/s no satisface el volumen diario supuesto. Puede afectar adquisición, almacenamiento y comunicaciones. \\
-C-05 & Precisar RNF-03 según la interfaz elegida. & Control de impedancia y pares diferenciales solo se aplican cuando la interfaz y sus condiciones lo requieren. \\
-C-06 & Adoptar cámara XIMEA y computador modular Verdin. & Se separa el almacenamiento de misión de la RAM y memoria de arranque. Se revisan potencia e interfaces; la compatibilidad del SDK en el módulo permanece como hipótesis de integración. \\
-C-07 & Adoptar requisitos de arranque y supervisión. & Definir estados iniciales y respuesta ante pérdida de alimentación; los circuitos concretos se seleccionarán posteriormente. \\
-C-08 & Seleccionar almacenamiento independiente de misión. & microSD industrial de 16 GB y escenario de 90 días. Se distinguen capacidad nominal, umbral útil, cuotas y reserva. \\
-C-09 & Definir contratos de módulos externos. & EPS por I2C y controlador ADCS por UART, con dominio externo de 3,3 V. La energía de cámara se entrega externamente; la topología VBUS requiere cierre eléctrico. \\
-C-10 & Asignar buses y conectores de señales. & Contactos X1 para I2C, UART y SPI; conectores GH de tres y cinco contactos para actitud y telemetría EPS. La entrada de potencia se dimensiona por separado. \\
-C-11 & Adaptar la UART de actitud. & TXU0202DCUR, polarización y habilitación controlada. Se exige tolerancia de señales con el módulo externo apagado y se mantienen verificaciones de umbrales y protección. \\
+C-01 & Integrar computador y radio en una PCB. & SPI y señales auxiliares son redes internas; el área se comparte. \\
+C-06 & Verdin modular y cámara XIMEA USB3. & RAM/eMMC integradas, SDK por comprobar y presupuesto de potencia actualizado. \\
+C-08 & microSD industrial independiente de 16 GB. & Retención de 90 días bajo cuotas y umbral de capacidad útil. \\
+C-09 & EPS por I2C y ADCS por UART. & Interfaces externas de 3,3 V con adaptación a 1,8 V. \\
+C-12 & Cámara alimentada por VBUS desde la PCB. & U4/U5 y conector USB; la corriente de cámara entra en la rama EPS de 5 V. \\
+C-13 & Fuente EPS de 5,10 V $\pm1\,\%$, $\geq4,5$ A. & Requisito para SoM y cámara; conector de entrada provisional. \\
+C-14 & Traductor adicional para RESET y tres GPIO del radio. & Cuatro GPIO asignados; dirección y arranque definidos en la hoja OBC. \\
 \bottomrule
 \end{tabularx}
+Los cambios de enlace y RF se conservan en la sección de comunicaciones. El registro no constituye evidencia de pruebas de funcionamiento.
 
 \section{Selección de componentes}
-\subsection{Cámara de referencia para el dimensionamiento de la tarjeta}
-
-Se selecciona la cámara XIMEA \texttt{MQ022HG-IM-SM5X5-7NIR2}
-como referencia eléctrica de la carga útil académica. La cámara es un
-dispositivo externo a la PCB central y de comunicaciones; su interfaz
-y sus necesidades de alimentación condicionan el diseño de la tarjeta,
-pero su costo no se incluye en la BOM de componentes montados en ella.
-
-El modelo seleccionado dispone de un sensor de $2048\times1088$ píxeles,
-conversión de 10 bits y conexión USB3 \cite{ximea7nir2}. La tarjeta
-requerirá un computador con función anfitrión y software compatible con
-la cámara. La disponibilidad de soporte Linux ARM orienta la selección,
-pero deberá comprobarse en la plataforma concreta \cite{ximealinux}.
-
-Se adopta para el dimensionamiento preliminar una adquisición de un
-cuadro bruto completo en RAW16. Este formato conserva las muestras en
-contenedores de 16 bits. El manual recomienda RAW8 o RAW16 para obtener
-los datos originales \cite{ximeamanual}. Sin metadatos ni relleno
-adicional, el volumen por cuadro es
-\begin{equation}
-D_{\mathrm{cuadro}}=2048\times1088\times2
-=4\,456\,448\ \mathrm{bytes}.
-\end{equation}
-Para diez adquisiciones diarias se obtienen $44{,}56448$ MB por día,
-utilizando MB decimales. La descarga de esas imágenes en 600 s requiere
-aproximadamente $594{,}2$ kbit/s útiles. Estos resultados excluyen
-telemetría, sobrecarga del protocolo y retransmisiones. El tamaño real
-del archivo deberá comprobarse con el formato de adquisición.
-
-
-\subsection{Computador de a bordo e interfaz de alimentación}
-
-Se adopta como referencia de diseño el Toradex Verdin iMX8M Plus Quad
-4GB IT V1.1B, número de producto \texttt{00631101}. El fabricante
-documenta esta referencia como reemplazo de la revisión V1.1A
-\cite{verdinpcn}. Se elige la variante sin Wi-Fi/Bluetooth porque la
-comunicación de misión corresponde al bloque de radio de la PCB.
-
-El módulo integra 4 GB de RAM y 32 GB de eMMC; esta última se reserva
-para arranque, sistema operativo y aplicación. Su puerto
-\texttt{USB\_2} ofrece USB 3.1 Gen 1 en función anfitrión y se reserva
-para la cámara. El nombre del puerto no indica velocidad USB 2.0.
-\texttt{USB\_1} se reserva para recuperación. El rango industrial
-es de $-40$ a $+85\,^{\circ}\mathrm{C}$, sujeto a las condiciones de
-disipación \cite{verdinds}.
-
-\subsubsection{Recursos y compatibilidad de software}
-Dos buffers para cuadros RAW16 completos requieren
-\begin{equation}
-M_{\mathrm{buffers}}=2(2048\times1088\times2)
-=8\,912\,896\ \mathrm{bytes}.
-\end{equation}
-Los 4 GB constituyen una configuración de catálogo con margen; no se
-deducen como mínimo necesario de este cálculo. El uso total de RAM
-incluye sistema operativo, SDK, copias y operaciones de procesamiento.
-
-Se considera Linux ARM64 mediante un BSP de Toradex compatible con la
-revisión V1.1B. Para la rama BSP 6, el aviso de cambio establece soporte
-desde 6.2.0 \cite{verdinpcn}. Esta condición no demuestra por sí sola
-compatibilidad con xiAPI: XIMEA ofrece software Linux ARM, pero no
-enumera Verdin entre sus plataformas probadas \cite{ximealinux}.
-El funcionamiento de esta combinación se mantiene como hipótesis
-explícita de integración del diseño académico. No se ha ejecutado una
-prueba ni verificado el conjunto de dependencias del SDK. La validación
-posterior deberá fijar versiones y comprobar apertura de la cámara,
-captura RAW16, integridad de archivos, tiempos y uso de memoria.
-
-\subsubsection{Dimensionamiento de la rama de potencia}
-La entrada recomendada del módulo admite de 3,135 a 5,5 V
-\cite{verdinds}. Se adopta un riel de 5 V por coherencia con ET-02;
-su intervalo de $\pm5\,\%$, de 4,75 a 5,25 V, está contenido en ese
-rango. La tensión debe garantizarse en los pines VCC, considerando
-las caídas de la distribución y protección.
-
-La guía de familia establece una envolvente de 8,25 W sostenidos y
-12,5 W de pico, y recomienda dimensionar la fuente para el pico
-\cite{verdinguide}. Se utiliza esa envolvente como criterio de diseño,
-sin atribuirla al consumo medido de la aplicación. En el extremo
-inferior de tensión:
+\subsection{Cámara y computador de a bordo}
+Se selecciona XIMEA \texttt{MQ022HG-IM-SM5X5-7NIR2}, externa a la PCB, con sensor de $2048\times1088$ posiciones, conversión de 10 bits e interfaz USB3. Se adquiere RAW16 para conservar las muestras originales en contenedores de 16 bits \cite{ximea7nir2,ximeamanual}. Sin metadatos ni relleno:
 \begin{align}
-I_{\mathrm{sost}}&=\frac{8{,}25}{4{,}75}
-\approx1{,}737\ \mathrm{A},\\
-I_{\mathrm{pico}}&=\frac{12{,}5}{4{,}75}
-\approx2{,}632\ \mathrm{A}.
+D_{\mathrm{cuadro}}&=2048(1088)(2)=4\,456\,448\ \mathrm{bytes},\\
+D_{\mathrm{dia}}&=10D_{\mathrm{cuadro}}=44,56448\ \mathrm{MB},\\
+M_{\mathrm{doble\ buffer}}&=2D_{\mathrm{cuadro}}=8\,912\,896\ \mathrm{bytes}.
 \end{align}
-Se especifica una capacidad de 3 A para la rama del SoM. A 4,75 V
-puede entregar 14,25 W, un margen del 14\,\% sobre la envolvente de
-pico. La capacidad nominal de 15 W a 5 V no equivale al consumo
-permanente del módulo. La cámara y los demás dispositivos requieren
-presupuestos adicionales; la eMMC y RAM internas no se suman de nuevo.
+Se usan MB decimales. Los RAW se conservan localmente; no se presupone su descarga diaria completa. La generación y validación de los productos reducidos definidos por comunicaciones queda como requisito del software futuro. El costo de la cámara externa no se incluye como componente montado de esta PCB.
 
-La corriente especificada no sustituye la comprobación de rampa,
-transitorios, desacoplo y secuencia de encendido. El diseño de la rama
-debe satisfacer la gestión de potencia de la familia
-\cite{verdinguide}. La energía se calculará a partir de consumos y
-duraciones por modo, sin sustituirlos por la capacidad de la fuente.
+Se adopta Toradex Verdin iMX8M Plus Quad 4GB IT V1.1B, producto 00631101, sin Wi-Fi/Bluetooth, con 4 GB de RAM y 32 GB de eMMC. La eMMC contiene sistema operativo y aplicación; la microSD almacena misión. USB\_2 funciona como anfitrión USB 3.1 Gen 1: el nombre del puerto no significa USB 2.0 \cite{verdinds,verdinpcn}. Frente a un microcontrolador, el módulo ofrece el anfitrión USB, memoria y entorno Linux requeridos; su capacidad se justifica por integración de interfaces y software, no solo por frecuencia.
 
-\subsubsection{Integración en la PCB}
-El módulo tiene una proyección de $69{,}6\times35$ mm
-\cite{verdinds}. Su área proyectada es 2436 mm$^2$, equivalente al
-30,07\,\% de una PCB de $90\times90$ mm. Esta comparación no incluye
-zócalo, fijaciones, disipación ni separaciones, por lo que no demuestra
-el encaje del conjunto completo.
+Los 4 GB son una configuración comercial con margen, no el mínimo deducido de dos buffers. El sistema operativo, SDK y procesamiento necesitan memoria adicional. El soporte Linux ARM de XIMEA no demuestra compatibilidad ensayada con Verdin; deben fijarse BSP, xiAPI y dependencias, y verificar captura RAW16, integridad y rendimiento \cite{ximealinux}. Para BSP 6, el cambio a V1.1B requiere al menos 6.2.0 según el aviso del fabricante \cite{verdinpcn}.
 
-Se reservarán circuitos para alimentación supervisada, recuperación,
-USB de cámara y adaptación de niveles. Muchas señales digitales usan
-1,8 V \cite{verdinguide}; cada interfaz deberá comprobarse antes de
-conectarla a dispositivos de 3,3 V. La energía de la cámara se entrega
-externamente; VBUS y la prevención de retroalimentación se cerrarán
-según el contrato de la sección~\ref{sec:contrato_interfaces}.
-El almacenamiento externo se conecta al bus SD dedicado. La interfaz
-digital de comunicaciones usa SPI\_1; la asignación física debe comprobar
-que no existan conflictos de multiplexación.
+La proyección del módulo, $69,6\times35$ mm, ocupa 2436 mm$^2$, aproximadamente 30,07\,\% del área de $90\times90$ mm. No incluye zócalo, fijaciones, disipación ni espacio de inserción; por ello no acredita encaje mecánico. Su rango industrial $-40$ a $+85\,^\circ$C depende de las condiciones térmicas, y no es calificación espacial. El dimensionamiento de la fuente y el desacoplo se reúnen en la sección~\ref{sec:potencia_obc}.
 
 \subsection{Almacenamiento independiente de misión}
 
@@ -1183,31 +529,266 @@ El cumplimiento deberá verificarse con el sistema de archivos y la
 configuración elegidos, incluyendo bloqueos y ráfagas. No se infiere
 del máximo comercial de escritura de la tarjeta.
 
-\subsubsection{Alimentación e integridad de datos}
-La rama de 3,3 V se dimensionará fuera de los 3 A reservados al SoM.
-La ficha consultada no publica corriente máxima ni de arranque; por
-ello la potencia máxima permanece sin valor, en vez de asumir cero.
-El interruptor de alimentación deberá reconocer la habilitación
-\texttt{SD\_1\_PWR\_EN}, que opera a 1,8 V aunque el bus SD use
-3,3 V \cite{verdinds}. La elección del zócalo, desacoplo, protección
-ESD e interruptor se completará con esos límites.
 
-Se deberá evitar el corte de energía con escrituras activas, cerrar
-y sincronizar archivos y comprobar su integridad. Las funciones de
-protección publicadas por Kingston no acreditan por sí solas la
-conservación del último archivo ni la consistencia del sistema de
-archivos ante cualquier interrupción. Guardar RAW y resultados en
-una misma tarjeta tampoco proporciona redundancia frente a su fallo.
+\subsubsection{Circuito de alimentación, zócalo e integridad}
+IC1, MIC94073YMT, conmuta 3V3 hacia +3V3\_SD; no es regulador ni limitador de corriente. VIN=3, VOUT=1, EN=4 y GND=2, con pad térmico a GND. SD\_1\_PWR\_EN (X1.76) lo controla a 1,8 V; su entrada incorpora adaptación de control, arranque suave y descarga de salida \cite{mic94073}. C7 es 100 nF/16 V en entrada y C8/C9 son 10 $\mu$F/10 V y 100 nF/16 V en salida. La capacidad del interruptor no representa corriente demandada por la tarjeta: el pico de escritura/arranque y la caída deben verificarse.
 
-La escritura lógica anual presupuestada es
-$91{,}12896(365)/1000=33{,}2620704$ GB. No equivale a escritura física
-de NAND; faltan amplificación y operaciones internas. No se atribuye
-a la referencia de 16 GB el TBW máximo de la familia, que el fabricante
-asocia a su capacidad mayor \cite{kingstonsdcit2}.
+En J1, Hirose DM3NW-SF-PEJ(800), C4 recibe +3V3\_SD; C6 y contactos de masa al retorno. Los contactos de datos se asignan así:
+\begin{tabularx}{\textwidth}{L{2.5cm}L{2cm}X}
+\toprule Señal & X1 & J1 \\
+\midrule
+SD\_1\_D2 / D3 & 70 / 72 & C1 / C2. \\
+SD\_1\_CMD / CLK & 74 / 78 & C3 / C5. \\
+SD\_1\_D0 / D1 & 80 / 82 & C7 / C8. \\
+Detección & 84 & Contacto de detección 2; comprobar polaridad y configuración del software. \\
+\bottomrule
+\end{tabularx}
+La detección mecánica no se confunde con DAT3. Deben revisarse continuidad de contactos de masa, polarización de detección y correspondencia símbolo--huella. La protección ESD y la corriente máxima de la microSD permanecen sin verificación completa; no se les asigna consumo cero.
 
-Las entradas, fórmulas, escenarios y restricciones correspondientes
-se mantienen en el libro de cálculos, con su procedencia y condición
-de dato publicado, supuesto o verificación pendiente.
+La escritura lógica anual prevista es $91,12896(365)/1000=33,2620704$ GB. No equivale a escritura física NAND ni demuestra vida útil sin amplificación de escritura y datos de la referencia exacta. Se exige sincronizar archivos antes del apagado; conservar RAW y resultados en la misma tarjeta no da redundancia ante su fallo.
+
+\subsection{Estado verificable del bloque central y documentación asociada}
+La captura incluye alimentación del SoM, pulsadores, microSD, adaptadores UART/I2C/SPI, control del radio y puerto USB de cámara. Se publicaron archivos nativos y librerías en la rama \texttt{d-obc}; esta publicación y la ausencia de conflictos Git no acreditan compatibilidad eléctrica. No se ejecutó ERC del avance OBC ni se dispone de una liberación para fabricación.
+
+Permanecen pendientes el conector provisional de 5 V, el cierre del arranque y mantenimiento, las señales EPS reservadas, las condiciones de apagado y los márgenes eléctricos señalados. La revisión integrada debe comprobar anotación única, conexiones entre hojas y modelos físicos. La BOM exportada, sus costos y los esquemáticos PDF deben corresponder a la misma versión del proyecto.
+
+El libro \texttt{calculos\_y\_restricciones.xlsx} se conserva en \texttt{Docs/Calculos} del repositorio de Santiago, con las hojas Calculos, Entradas y Restricciones. Se copió sin modificar sus fórmulas; todavía debe reconciliarse con los cálculos nuevos de USB y alimentación aquí documentados. Esta versión del informe no implica que el libro ya haya sido actualizado.
+
+\section{Selección del sistema de comunicaciones}
+\label{sec:com}
+\subsection{Transceptor: Texas Instruments CC1120}
+Se selecciona el transceptor CC1120 de Texas Instruments \cite{cc1120} como núcleo del enlace bidireccional (IF-10 a IF-13). Sus criterios de selección frente a los requisitos de la práctica 3 \cite{lab3} son:
+\begin{itemize}
+\item \textbf{RF-02 y RN-01:} opera en la banda de 420--470 MHz, que contiene el rango de 435--438 MHz fijado en ET-05; un único circuito integrado cubre transmisión y recepción.
+\item \textbf{Sensibilidad:} la hoja de datos reporta una sensibilidad del orden de $-123$ dBm a 1,2 kbit/s, adecuada para un enlace de baja tasa con un satélite a 550 km.
+\item \textbf{Diseño de referencia verificado:} TI publica el módulo CC112xEM para 420--470 MHz con esquemático, lista de materiales y trazado \cite{cc1120em}. Su reutilización reduce el riesgo técnico y respeta RN-02 (recomendaciones de \emph{layout} del fabricante).
+\item \textbf{Interfaz:} SPI de cuatro hilos más GPIO configurables, compatible con \texttt{SPI\_1} del Verdin (IF-10/IF-11).
+\item \textbf{Consumo:} baja corriente en recepción y transmisión frente al presupuesto de 200 mW (Rx) heredado, valores a confirmar en la hoja de datos.
+\end{itemize}
+Las cifras eléctricas de este apartado son valores típicos de la hoja de datos tomados como referencia de dimensionamiento; deben contrastarse con la revisión vigente del documento antes del cierre.
+
+\subsection{Circuito implementado}
+El esquemático de comunicaciones (hoja \texttt{Comunicaciones.SchDoc}) reproduce el diseño de referencia CC112xEM 420--470 MHz v1.1.0 \cite{cc1120em} con las siguientes decisiones, tomadas según las notas del propio esquemático de TI:
+\begin{itemize}
+\item \textbf{U1 (CC1120RHBR):} QFN-32 con pad expuesto a masa. Los pines AVDD/DVDD y los nodos internos se desacoplan con 47 nF, 10 nF, 1,8 nF y 0,22 $\mu$F según la referencia; RBIAS usa 56 k$\Omega$.
+\item \textbf{Reloj:} cristal de 32 MHz (variante con cristal) con dos condensadores de carga de 15 pF. EXT\_XOSC se lleva a masa mediante la resistencia de 0 $\Omega$, como exige TI cuando no se monta el TCXO. El TCXO queda sin montar.
+\item \textbf{Alimentación:} no se monta el regulador TPS79930. Siguiendo la nota de TI (``L1 se monta si no se monta U2''), la red de 3,3 V alimenta VDD\_REG a través de la ferrita FB, ya que 3,3 V está dentro del intervalo de alimentación del CC1120. Esto elimina un regulador y su disipación.
+\item \textbf{Adaptación y filtro RF:} se conservan los valores de TI (inductores de 15, 27, 43 y 56 nH, condensadores de 2,2 a 39 pF, red de polarización de PA con 56 nH, 18 $\Omega$, 10 nF y 100 pF) entre los pines LNA\_P/LNA\_N, TRX y PA y el conector coaxial de 50 $\Omega$.
+\item \textbf{Conector J (2 posiciones):} conecta 3V3 y GND en la hoja. Se redefine como \emph{jumper} en serie entre 3V3 y la ferrita para medir la corriente del radio durante pruebas (ver tabla de revisión).
+\item \textbf{Interfaz con la hoja principal:} puertos SPI\_MOSI, SPI\_MISO, SPI\_SCK, SPI\_CS, GPIO0, GPIO2, GPIO3, RESET, 3V3 y GND. Los conectores P1/P2 del módulo de evaluación no se incluyen porque radio y computador comparten PCB.
+\end{itemize}
+
+\subsection{Interfaz con el computador y niveles lógicos}
+El CC1120 alimentado a 3,3 V exige $V_{IH}\approx0{,}8\,V_{DD}\approx2{,}6$ V, mientras que \texttt{SPI\_1} del Verdin opera a 1,8 V \cite{verdinds}; la conexión directa no es válida. La hoja \texttt{Computador\_Abordo.SchDoc} ya resuelve esto con el traductor TXU0304 (U1): VCCA a +1V8\_SOM, VCCB a 3V3, con MOSI, SCK y CS hacia el radio y MISO en sentido inverso, y la habilitación \texttt{OBC\_SPI\_OE} con resistencia de pull-down para mantener las salidas en alta impedancia durante el arranque \cite{txu0202}. Las señales GPIO0/2/3 y RESET se conectan sin traductor desde la hoja principal a los pines del CC1120; su adaptación a 1,8 V del SoM queda como parte del contrato de la sección~\ref{sec:contrato_interfaces}.
+
+\subsection{Presupuesto de enlace preliminar}
+\label{sec:enlace}
+Se evalúa el enlace descendente (satélite $\rightarrow$ Medellín) a 435,5 MHz con elevación mínima de 10$^\circ$. La distancia oblicua para $h=550$ km y $R_T=6371$ km es
+\begin{equation}
+d=\sqrt{(R_T+h)^2-(R_T\cos\varepsilon)^2}-R_T\sin\varepsilon\approx1815\ \mathrm{km},
+\end{equation}
+y la pérdida de espacio libre
+\begin{equation}
+L_{fs}=32{,}45+20\log_{10}(435{,}5)+20\log_{10}(1815)\approx150{,}4\ \mathrm{dB}.
+\end{equation}
+La potencia recibida es $P_r=P_t+G_t+G_r-L_{var}-L_{fs}$. Supuestos (declarados, no medidos): $G_t=-1$ dBi (antena de monopolo/dipolo), $G_r=12$ dBi (Yagi en tierra), $L_{var}=3$ dB (polarización, apuntamiento, atmósfera). La sensibilidad se escala con $S(R)=-123+10\log_{10}(R/1200)$ dBm, aproximación conservadora a partir del dato a 1,2 kbit/s. La Tabla~\ref{tab:enlace} resume el margen $M=P_r-S$ y el volumen ideal descargable en 600 s.
+
+\begin{table}[h]
+\centering\small
+\caption{Margen de enlace descendente y volumen ideal por contacto de 600 s.}\label{tab:enlace}
+\begin{tabular}{rrrrr}
+\toprule $R$ (kbit/s) & $S$ (dBm) & $M$ con 14 dBm (dB) & $M$ con 30 dBm (dB) & Volumen ideal (MB) \\
+\midrule
+1,2 & $-123{,}0$ & $-5{,}4$ & $10{,}6$ & 0,09 \\
+9,6 & $-114{,}0$ & $-14{,}4$ & $1{,}6$ & 0,72 \\
+50 & $-106{,}8$ & $-21{,}6$ & $-5{,}6$ & 3,75 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Análisis.} (1) La salida del CC1120 (del orden de 14--16 dBm) no cierra el enlace; se necesita una etapa de potencia externa de $\approx$1 W (30 dBm), coherente con los 2 W eléctricos de Tx del presupuesto heredado. Esta etapa no forma parte del diseño de referencia y queda como \textbf{TBD con fecha de cierre antes del diseño de la PCB de RF}. (2) Incluso con 1 W, el margen deseable de 6~dB solo se logra a velocidades cercanas a 1,2--2,4 kbit/s. (3) Con la tasa útil de 667 kbit/s derivada en la sección~\ref{sec:datos}, el volumen descargable (<4 MB/día en el mejor caso de la tabla) está muy por debajo de los 50 MB de imágenes presupuestados. Por tanto, el CC1120 UHF queda dimensionado para \textbf{telemetría, comandos y descarga de imágenes muy reducidas}; la descarga masiva exige reducir el volumen por captura o añadir un enlace de mayor tasa (banda S), decisión ya anticipada como TBD en la práctica 3. Esta es la principal limitación de la solución y se declara como riesgo R1 en la sección~\ref{sec:riesgos}.
+
+\subsection{Evaluación del transceptor y alternativas}
+\label{sec:alt}
+\textbf{Cumplimiento del CC1120 frente a los requisitos.}
+\begin{center}\small
+\begin{tabular}{L{3.2cm}L{2.6cm}L{8.6cm}}
+\toprule Requisito/ET & Resultado & Observación \\
+\midrule
+ET-05, RN-01 (435--438 MHz) & Cumple & Banda 420--470 MHz con el diseño de referencia. \\
+RF-02 (telemetría y comandos) & Cumple & Tasas de 1,2 a decenas de kbit/s; SPI de 4 hilos. \\
+ET-06 ($\geq9600$ bit/s) & Cumple con límite & Cierra con etapa de potencia externa y margen reducido (Tabla~\ref{tab:enlace}). \\
+Salida de potencia (2 W eléctricos de Tx, IF-03) & No cumple solo & El CI entrega $\approx14$--16 dBm; falta una etapa de $\approx30$ dBm. \\
+Descarga de 50 MB/día de imágenes & No cumple & Ninguna tasa viable en UHF narrowband lo permite (véase abajo). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Alternativas con el mismo circuito de referencia.} La nota del esquemático de TI indica que el mismo diseño sirve para CC1120 y CC1125, cambiando el cristal de 32 MHz por uno de 40 MHz \cite{cc1120em}. El CC1125 es la variante de TI optimizada para sensibilidad y selectividad en banda estrecha; mejora el margen del enlace a tasas bajas, pero no aumenta la tasa máxima ni la potencia de salida, por lo que no resuelve ninguno de los dos incumplimientos. Otros dispositivos de la familia CC112x/CC120x difieren en pines, potencia o función (p.\,ej., solo transmisión), y deben verificarse uno a uno antes de asumir compatibilidad. La conclusión es que \textbf{cambiar de CI dentro de esta familia no resuelve la brecha; lo que la resuelve es la potencia de transmisión y reducir el volumen de datos}.
+
+\textbf{Alternativa de mayor tasa (cambio de enlace).} Para cubrir los 667 kbit/s útiles sería necesario un transceptor distinto (banda S/2,4 GHz) y un circuito nuevo, no el de TI. Con una estimación en 2,4 GHz, $L_{fs}=150{,}4+20\log_{10}(2400/435{,}5)\approx165{,}2$ dB. A 667 kbit/s se requiere $P_r\approx-174+10\log_{10}(667\times10^3)+NF+E_b/N_0\approx-100$ dBm (con $NF=6$ dB y $E_b/N_0=10$ dB como supuestos). Con $P_t=30$ dBm, $G_t=6$ dBi (parche), $G_r=25$ dBi (parábola en tierra) y 3 dB de pérdidas: $P_r=30+6+25-3-165{,}2=-107{,}2$ dBm, es decir un margen de $\approx-7$ dB. Esa opción exige antena de 1U desplegable o potencia mayor y supera el alcance de esta PCB, por lo que se descarta para esta etapa.
+
+\textbf{Decisión.} Se conserva el CC1120 (con la opción de sustituirlo por el CC1125 en el mismo circuito si la prueba de enlace exige más sensibilidad) y se modifica el sistema en tres puntos:
+\begin{enumerate}
+\item \textbf{Etapa de potencia RF externa de $\approx$1 W (30 dBm)} entre el pin PA del CC1120 y la antena, con conmutación Tx/Rx y habilitación \texttt{PA\_EN} desde un GPIO del radio. Con una eficiencia del 50\,\% consume $1/0{,}5=2$ W en transmisión, a 5 V son 0,4 A, coherente con los 2000 mW de IF-03. Especificación: salida $\geq30$ dBm a 435--438 MHz, entrada $\leq14$ dBm, alimentación 5 V, impedancia 50 $\Omega$. La referencia de componente se fija en la etapa de BOM.
+\item \textbf{Productos de imagen a bordo.} El Verdin iMX8M Plus tiene capacidad para generar índices espectrales y miniaturas, por lo que se descargan productos reducidos y las imágenes RAW se conservan en la microSD para descarga selectiva.
+\item \textbf{Modificación de requisitos.} RF-02 se limita a telemetría, comandos y productos de imagen reducidos por UHF; ET-06 se reformula como tasa de 4,8 kbit/s con margen de enlace $\geq4$ dB.
+\end{enumerate}
+
+\textbf{Presupuesto de datos y enlace revisado.} Supuestos: 10 productos por día de $128\times128$ píxeles de 8 bits más 4 kB de metadatos ($16{,}4+4=20{,}4$ kB), telemetría de 100 B cada 120 s (720 registros, 72 kB), eficiencia del enlace $\eta=0{,}7$ y tasa de 4,8 kbit/s:
+\begin{align}
+D_{dia}&=10(20{,}4)+72=276\ \mathrm{kB},\\
+T_{contacto}&\geq\frac{8D_{dia}}{\eta R}=\frac{8(276\times10^3)}{0{,}7(4800)}\approx657\ \mathrm{s}.
+\end{align}
+Se adopta un contacto diario total $\geq700$ s (dos pasos de $\approx$6 min), supuesto a verificar con el análisis orbital. La sensibilidad a 4,8 kbit/s es $S=-123+10\log_{10}(4800/1200)=-117{,}0$ dBm, y con $P_t=30$ dBm: $P_r=-112{,}4$ dBm, margen de 4,6 dB, que sube a 6,6 dB si la antena terrestre tiene $G_r=14$ dBi. Esto fija un requisito de la estación terrestre (Yagi de $\geq14$ dBi). Energía de transmisión: $2\ \mathrm{W}\times700\ \mathrm{s}=1400$ J $\approx0{,}39$ Wh por día, compatible con la batería 2S (ET-01). La descarga a 9,6 kbit/s también se admite como modo de contingencia con margen de 1,6 dB.
+
+\section{Restricciones para el diseño de la PCB}
+\label{sec:dfm}
+Esta sección deriva las condiciones que deberá cumplir el diseño físico a partir de las hojas de datos, el diseño de referencia del CC1120 \cite{cc1120em}, las especificaciones de la práctica 3 \cite{lab3} y cálculos propios. En la matriz se distingue entre condiciones \textbf{exigidas por una fuente técnica} (F) e \textbf{inferencias propias} (I). Cuando un valor depende del apilamiento de capas de la guía de enrutamiento, se registra el objetivo eléctrico y qué falta por definir.
+
+\subsection{Cálculos de soporte}
+\textbf{Ancho de pista para la rama de 5 V del SoM (3 A).} Con la relación de IPC-2221 para capa externa, $I=k\,\Delta T^{0{,}44}A^{0{,}725}$, con $k=0{,}048$, $I=3$ A y un aumento admisible $\Delta T=10\,^\circ$C:
+\begin{equation}
+A=\left(\frac{3}{0{,}048\,(10)^{0{,}44}}\right)^{1/0{,}725}\approx74{,}2\ \mathrm{mil}^2,\qquad
+w=\frac{A}{1{,}378\ \mathrm{mil}}\approx53{,}8\ \mathrm{mil}\approx1{,}37\ \mathrm{mm}\ (1\ \mathrm{oz}).
+\end{equation}
+La corriente no basta para fijar el ancho: en vacío no hay convección y el calor sale solo por conducción y radiación, por lo que el valor es un mínimo. Se adopta como objetivo $w\geq2$ mm o polígono. La resistencia lineal de 1 oz (35~$\mu$m, $\rho=1{,}72\times10^{-8}\ \Omega\,$m) es $\rho/(tw)\approx0{,}25\ \mathrm{m}\Omega/\mathrm{mm}$ para 2 mm. Si se reserva 20~m$\Omega$ de los 50~m$\Omega$ de la sección de alimentación para el cobre, la longitud máxima del trayecto es $20/0{,}25\approx80$ mm.
+
+\textbf{Pérdida de tensión a 3 A.} Para $R_{trayecto}=50$ m$\Omega$ la caída máxima es $3(0{,}05)=0{,}15$ V, coherente con el margen de 4,90--4,75 V ya definido.
+
+\textbf{Pares diferenciales USB 3.} Se fija impedancia diferencial objetivo de 90~$\Omega\pm10\,\%$ (valor de la especificación USB). La geometría (ancho y separación) \emph{depende del apilamiento} y se resuelve con el calculador de impedancia del fabricante cuando se defina el \emph{stack-up}.
+
+\textbf{Línea RF.} Impedancia objetivo 50~$\Omega\pm10\,\%$ en microstrip, con $\varepsilon_r\approx4{,}2$ del FR-4 como supuesto preliminar; ancho resuelto con el mismo calculador.
+
+\subsection{Matriz única de restricciones}
+\small
+\begin{longtable}{L{2.5cm}L{4.5cm}L{4.1cm}L{4.4cm}}
+\caption{Matriz de restricciones de la PCB (F: fuente técnica; I: inferencia propia).}\label{tab:pcb}\\
+\toprule ID y trazabilidad & Restricción y alcance & Fuente y fundamento & Aplicación y verificación \\
+\midrule\endfirsthead
+\toprule ID y trazabilidad & Restricción y alcance & Fuente y fundamento & Aplicación y verificación \\
+\midrule\endhead
+PCB-01; RNF-01, ET-03 & Contorno $\leq90\times90$ mm. Toda la PCB. & F: práctica 3 \cite{lab3}, ET-03. & Regla de contorno en el diseño físico; DRC. Pendiente. \\
+PCB-02; IF-01, ET-01 & Riel +5V\_SOM: 3 A, caída total del trayecto $\leq50$ m$\Omega$ ($\pm5\,\%$ en el módulo). Entrada de potencia $\to$ Verdin. & I: cálculo de caída de la sección de alimentación; F: tolerancia del módulo \cite{verdinds}. & Directiva de ancho mínimo de red; medir resistencia en el diseño. Pendiente. \\
+PCB-03; IF-01 & Ancho de pista +5V\_SOM $\geq2$ mm o polígono, 1 oz, $\Delta T\leq10\,^\circ$C. & I: IPC-2221 (cálculo anterior); ancho mínimo 1,37 mm. & Regla de ancho en clase de redes \texttt{PWR}. Pendiente. \\
+PCB-04; IF-01 & Desacoplo del SoM junto a los contactos de +5V\_SOM; retorno de masa directo. & F: guía de diseño de placa portadora Verdin \cite{verdinguide}. & Nota en el esquemático y regla de ubicación. Se verifica en el diseño físico. \\
+PCB-05; IF-08 & Pares USB3 del puerto USB\_2: impedancia diferencial 90~$\Omega\pm10\,\%$, longitudes igualadas dentro del par, sin cortes de plano de referencia. Zona J\_CAM. & F: especificación USB 3.x y guía Verdin \cite{verdinguide}. & Directiva de par diferencial; geometría depende del \emph{stack-up} (TBD). \\
+PCB-06; IF-09 & Bus SD de 4 bits a 25 MHz: pistas cortas, longitudes agrupadas, desacoplo del zócalo y ESD cerca del conector. & F: Toradex \cite{toradexsd}, ESD321 \cite{esd321}. & Clase de redes \texttt{SD}; tolerancia de longitud TBD según guía de enrutamiento. \\
+PCB-07; IF-10, IF-11 & SPI\_1 hacia el traductor de niveles y CC1120: traductor cerca del radio, sin cruzar la zona RF. & I: separación de ruido digital y RF; F: niveles del CC1120 \cite{cc1120}. & Regla de clase \texttt{SPI\_COM}; revisión manual de ubicación. \\
+PCB-08; IF-12, RN-02 & Línea RF 50~$\Omega\pm10\,\%$ entre red de adaptación y SMA P3, lo más corta posible, sin vías ni giros de 90$^\circ$. & F: diseño de referencia CC112xEM \cite{cc1120em}; I: objetivo de impedancia. & Directiva de impedancia en la red RF; ancho TBD con el \emph{stack-up}. \\
+PCB-09; IF-12, RN-02 & Pad expuesto del CC1120 a masa con vías térmicas; plano de masa continuo bajo la zona RF. & F: referencia TI \cite{cc1120em}. & Nota en el esquemático; inspección de capas y DRC. \\
+PCB-10; IF-12 & Desacoplo del CC1120 (47~nF/10~nF) a $\leq2$ mm de cada pin AVDD/DVDD; cristal X1 y sus cargas junto a XOSC\_Q1/Q2. & F: referencia TI \cite{cc1120em}; I: distancia máxima. & Regla de ubicación; verificación manual. \\
+PCB-11; IF-12, ET-05 & Los valores de la red de adaptación RF no se modifican respecto a la referencia en 420--470 MHz. & F: referencia TI \cite{cc1120em}. & Revisión de la BOM contra la lista de partes de TI. \\
+PCB-12; IF-03, RNF-02 & Separar zona RF de las conversiones DC-DC y de los buses de alta velocidad (USB3, SD). & I: RNF-02 (EMI). & Nota de ubicación; revisión manual. \\
+PCB-13; IF-14, IF-16 & I2C\_1 y UART\_1 hacia conectores GH: señales externas a 3,3 V, pull-ups dimensionados con la capacitancia del bus. & F: contrato de interfaces de la sección 3. & Nota en esquemático; cálculo de pull-ups. \\
+PCB-14; RA-01, ET-07 & Todos los componentes con rango $-40$ a $+85\,^\circ$C; disipación del SoM sujeta al estado térmico. & F: hojas de datos; \cite{verdinds}. & Revisión de la BOM; análisis térmico pendiente. \\
+PCB-15; RA-03 & Conectores con retención mecánica; SMA y JST GH con anclaje; sin componentes pesados sin apoyo. & I: vibración de lanzamiento. & Nota de diseño; revisión mecánica posterior. \\
+PCB-16; fabricación & Anchos, separaciones, taladros y anillos mayores que los mínimos del proveedor (sección~\ref{sec:fab}). & F: capacidades del proveedor. & Reglas de diseño físico; DRC. Pendiente. \\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\section{Condiciones de fabricación}
+\label{sec:fab}
+Se toma como proveedor de referencia JLCPCB, por tener capacidades públicas para placas de 4 capas \cite{jlcpcb}. Consulta: 26 de octubre de 2026. No se genera pedido ni archivos de fabricación.
+
+\begin{longtable}{L{4cm}L{4.4cm}L{6.8cm}}
+\caption{Condiciones de fabricación preliminares.}\label{tab:fab}\\
+\toprule Parámetro & Valor adoptado & Fundamento \\
+\midrule\endfirsthead
+\toprule Parámetro & Valor adoptado & Fundamento \\
+\midrule\endhead
+Número de capas & 4 (señal--masa--potencia--señal) & El proveedor ofrece 4 capas con impedancia controlada \cite{jlcpcb}; el diseño de referencia de TI usa 4 capas \cite{cc1120em}. \\
+Material & FR-4; espesor total 1,6 mm (TBD) & Supuesto estándar; se confirma con el \emph{stack-up} de la guía de enrutamiento. \\
+Cobre & 1 oz externo, 0,5 oz interno (supuesto) & Compatible con el cálculo de la pista de 3 A; interno por confirmar. \\
+Pista/separación mínima del proveedor (4--6 capas) & 3,5 mil (0,09 mm) & Capacidad publicada \cite{jlcpcb}. \\
+Pista/separación de diseño objetivo & $\geq0{,}127$ mm (5 mil) & Inferencia: margen sobre el mínimo para reducir riesgo de fabricación. \\
+Taladro mínimo (multicapa) & 0,2 mm & Capacidad publicada \cite{jlcpcb}. \\
+Taladro de vía de diseño & 0,3 mm con anillo $\geq0{,}15$ mm & Inferencia: sobre el mínimo del proveedor (anillo 0,13 mm con 1 oz). \\
+Distancia cobre--borde & $\geq0{,}4$ mm (inferencia, a confirmar) & Valor de documentación de terceros; se verifica con el proveedor. \\
+Servicios especiales & Impedancia controlada (RF y USB3) & Se solicita con el \emph{stack-up} por defecto del proveedor \cite{jlcpcb}. \\
+\bottomrule
+\end{longtable}
+Las huellas del CC1120 (QFN-32 con pad expuesto) y de los pasivos 0402 son implementables con estas capacidades: la separación pad--pista de diseño de 0,127 mm supera el mínimo del proveedor. Queda pendiente confirmar el servicio de impedancia con el \emph{stack-up} definitivo.
+
+\section{Incorporación de restricciones al esquemático}
+\label{sec:ps}
+Las restricciones que Altium admite como reglas se registran con directivas \emph{Parameter Set} asociadas a redes o grupos de redes; el resto queda como nota y entrada de la matriz. Esta correspondencia no equivale a que la regla ya funcione: el DRC de la geometría se comprobará en la guía de enrutamiento.
+
+\begin{longtable}{L{2.2cm}L{4.5cm}L{4.5cm}L{3.6cm}}
+\toprule ID & Mecanismo propuesto & Redes o alcance & Estado \\
+\midrule\endhead
+PCB-02, 03 & Parameter Set de ancho mínimo y clase de redes \texttt{PWR} & +5V\_SOM, +5V\_EPS\_IN y retorno & Pendiente de configurar en el diseño físico \\
+PCB-05 & Parameter Set de par diferencial (impedancia 90~$\Omega$) & Pares USB3 de J\_CAM & Pendiente; ancho por \emph{stack-up} \\
+PCB-06, 07 & Clases de redes \texttt{SD} y \texttt{SPI\_COM} & Bus SD y SPI\_1 & Pendiente \\
+PCB-08 & Parameter Set de impedancia 50~$\Omega$ & Red RF entre U1 y P3 & Pendiente; ancho por \emph{stack-up} \\
+PCB-04, 09, 10, 12, 15 & Nota de esquemático (no codificable como regla) & Zonas indicadas & Registrada como nota y entrada de la matriz \\
+PCB-01, 14, 16 & Regla del diseño físico / revisión de BOM & Contorno y componentes & Regla pendiente en el diseño físico \\
+\bottomrule
+\end{longtable}
+
+\section{Organización jerárquica y estrategia de reutilización}
+\label{sec:jer}
+El proyecto de Altium (\texttt{PCB\_Project.PrjPcb}) tiene una hoja principal \texttt{Top\_Sheet.SchDoc} y dos hojas subordinadas, una por bloque funcional:
+\begin{itemize}
+\item \textbf{Top\_Sheet:} muestra los dos bloques y sus conexiones. Los puertos 3V3 y GND alimentan ambas hojas; cuatro señales SPI (MOSI, MISO, SCK, CS) unen los bloques; y GPIO0, GPIO2, GPIO3 y RESET conectan el computador con los pines de control del radio. Las direcciones de los puertos coinciden entre las entradas de hoja y los puertos de las hojas hijas.
+\item \textbf{Computador\_Abordo.SchDoc:} conectores del módulo Verdin (alimentación, SPI\_1, UART, SD, recuperación y reinicio), traductores de niveles TXU0304 (SPI) y TXU0202 (UART de actitud), interruptor de alimentación de la microSD, zócalo microSD, conector JST GH de actitud y condensadores de desacoplo de +5V\_SOM.
+\item \textbf{Comunicaciones.SchDoc:} CC1120, cristal, red de adaptación RF, desacoplo y conector coaxial.
+\end{itemize}
+Los alcances de los identificadores de red son locales a cada hoja salvo los puertos, lo que evita colisiones de nombres; los nombres de red usan prefijos de función (\texttt{OBC\_}, \texttt{SD\_}, \texttt{SPI\_}).
+
+\textbf{Reutilización.} Se identifican patrones reutilizables: (i) el bloque de adaptación de niveles (TXU0202 y TXU0304) repite la misma topología con distinto número de canales; (ii) el desacoplo de alimentación (47 nF/10 nF por pin) se repite en el radio y en el SoM; (iii) los conectores JST GH comparten símbolo y huella. Dado que cada función aparece una sola vez, no se usa diseño multicanal ni hojas repetidas; se evita introducir repetición artificial. El bloque de comunicaciones queda como hoja independiente y reutilizable para otra banda cambiando el cristal y la red RF.
+
+\section{Revisión eléctrica y coherencia}
+\label{sec:revision}
+Se realizó una revisión manual de las hojas capturadas (hoja principal, computador y comunicaciones), complementaria al ERC de Altium. La Tabla~\ref{tab:revision} registra lo encontrado y su resolución.
+
+\begin{longtable}{L{1cm}L{5.3cm}L{6.9cm}}
+\caption{Registro de la revisión del esquemático.}\label{tab:revision}\\
+\toprule \# & Hallazgo & Resolución \\
+\midrule\endfirsthead
+\toprule \# & Hallazgo & Resolución \\
+\midrule\endhead
+1 & En \texttt{Comunicaciones.SchDoc} los designadores están sin anotar (C?, L?, R?, U?, Y?, J?, FB?), y el panel de proyecto marca la hoja con estado pendiente. & Ejecutar \emph{Annotate} sobre todo el proyecto antes del ERC y recompilar; no se aceptan designadores duplicados. \\
+2 & Conector de 2 posiciones en la hoja de comunicaciones conectado directamente a 3V3 y GND (redundante con la alimentación de la hoja principal). & Se convierte en \emph{jumper} en serie entre 3V3 y la ferrita para medir la corriente del radio; en el diseño físico se puede sustituir por un puente de 0 $\Omega$. \\
+3 & SPI\_1 del SoM a 1,8 V frente a $V_{IH}\approx2{,}6$ V del CC1120. & Resuelto con el TXU0304 (U1) en la hoja del computador, con \texttt{OBC\_SPI\_OE} en pull-down. \\
+4 & El esquemático de referencia incluye TPS79930 (U2) y TCXO; la implementación usa solo la ferrita y el cristal. & Coherente con las notas de TI; se documenta como variante (sección~\ref{sec:com}). Verificar que 3V3 no supere el máximo del CC1120 durante transitorios. \\
+5 & La etapa de potencia RF de 1 W no aparece en el esquemático actual. & Se incorpora como sub-bloque de la hoja de comunicaciones entre el pin PA y el coaxial, según la especificación de la sección~\ref{sec:alt}. \\
+6 & Las líneas de alimentación 3V3 y +5V del bloque aparecen como etiquetas sin fuente en las hojas; falta el conector de entrada de potencia (J\_EPS\_PWR), con su protección. & Se incorpora el conector de potencia de la sección de conectores, con la protección de sobrecorriente seleccionada para el riel de 5 V (TPS25947/8). \\
+7 & GPIO0, GPIO2, GPIO3 y RESET del radio llegan a pines del SoM de 1,8 V sin traductor. & Se asignan a GPIO del Verdin con adaptación a 3,3 V mediante el traductor adicional de la familia TXU ya empleada. \\
+\bottomrule
+\end{longtable}
+
+\textbf{ERC y control de calidad.} El ERC se ejecuta sin desactivar comprobaciones globales. Las advertencias aceptadas se limitan a pines de alimentación de símbolos del SoM que se alimentan por red etiquetada y a pines no conectados (NC) del CC1120, que se marcan con \emph{No ERC}. Cualquier error real se corrige antes de la entrega.
+
+\textbf{Cambios respecto a la práctica 3 (comunicaciones).} (a) ET-06 pasa de $\geq9600$ bit/s a 4,8 kbit/s con margen de 4,6 dB y 9,6 kbit/s como contingencia; (b) se agrega una etapa de potencia RF de 1 W; (c) los 50 MB/día de imágenes se sustituyen por 276 kB/día de productos reducidos; (d) se añade un traductor de niveles para el SPI. Estos cambios afectan el presupuesto de energía (+2 W en Tx), el requisito de la estación terrestre ($G_r\geq14$ dBi) y el espacio en la PCB.
+
+\section{Riesgos, limitaciones y asuntos pendientes}
+\label{sec:riesgos}
+\begin{longtable}{L{1cm}L{6cm}L{6.2cm}}
+\toprule ID & Riesgo o limitación & Mitigación \\
+\midrule\endhead
+R1 & El enlace UHF no permite descargar imágenes completas. & Productos reducidos a bordo; imágenes RAW por descarga selectiva; enlace de mayor tasa en una versión futura. \\
+R2 & Margen de enlace de 4,6 dB, inferior al deseable de 6 dB. & Antena terrestre $\geq14$ dBi; modo a 1,2 kbit/s con 10,6 dB de margen. \\
+R3 & Consumo de 2 W durante Tx. & Operación en modos excluyentes; límite de 700 s/día. \\
+R4 & Frecuencia y potencia sujetas a regulación de la UIT y de la autoridad nacional. & Confirmar la asignación antes de cualquier transmisión. \\
+R5 & Cifras de sensibilidad y consumo del CC1120 son datos típicos de la hoja de datos. & Se contrastan con la revisión vigente de la hoja de datos durante la selección de la BOM. \\
+R6 & El apilamiento de capas define los anchos de RF y USB3. & Se fija en la guía de enrutamiento. \\
+\bottomrule
+\end{longtable}
+
+\section{Conclusiones}
+Se completó el diseño electrónico del procesador y de las comunicaciones. Se evaluó el CC1120 contra los requisitos: cumple frecuencia, telemetría y comandos, pero no potencia ni descarga masiva de imágenes. Las alternativas dentro de la misma familia no resuelven la brecha, por lo que se agregó una etapa de potencia, se redujo el volumen descargado y se redefinieron las especificaciones afectadas. Las restricciones eléctricas y de fabricación quedaron en una matriz única trazable.
+
+\section*{Anexo A: estructura del repositorio y README}
+\begin{itemize}
+\item \texttt{/Altium}: proyecto, hojas y librerías propias.
+\item \texttt{/Datasheets}: CC1120, CC112xEM, Verdin iMX8M Plus, TXU0304/TXU0202, TPS25947/8, ESD321, microSD Kingston, JST GH.
+\item \texttt{/Calculos}: hoja de cálculo con enlace, datos, energía y restricciones.
+\item \texttt{/Informe}: fuentes LaTeX y PDF.
+\item \texttt{README.md}: identifica la tarjeta (PCB integrada central y de comunicaciones del CubeSat UD34), los integrantes, la versión de Altium utilizada y las instrucciones para abrir \texttt{PCB\_Project.PrjPcb}.
+\end{itemize}
+Los commits describen cada cambio de diseño y cada fuente se registra con fabricante, referencia, revisión y enlace.
 
 \begin{thebibliography}{99}
 \bibitem{guia4} Departamento de Ingeniería Electrónica, Universidad de Antioquia. \emph{Práctica 4: Diseño Electrónico y Captura Esquemática}. Archivo suministrado: \texttt{lab004\_2598575\_20262.pdf}. Véanse descripción, procedimiento 1 y entregables.
@@ -1289,5 +870,14 @@ Consultado el 26 de octubre de 2026.
 SLVSGT9D, revisión D, abril de 2026, secciones 4--6.5.
 \url{https://www.ti.com/lit/ds/symlink/tps25948.pdf}.
 Consultado el 26 de octubre de 2026.
+\bibitem{cc1120} Texas Instruments. \emph{CC1120: High-Performance RF Transceiver for Narrowband Systems}, hoja de datos. \url{https://www.ti.com/product/CC1120}.
+\bibitem{cc1120em} Texas Instruments. \emph{CC112xEM 420--470 MHz Reference Design}, v1.1.0: esquemático, lista de partes y \emph{layout}. Archivos suministrados: \texttt{CC112xEM\_420\_470\_schematic.pdf}, \texttt{CC112xEM\_layout.pdf}, \texttt{CC1120EM\_420\_470\_Partlist.xls}.
+\bibitem{jlcpcb} JLCPCB. \emph{PCB Manufacturing \& Assembly Capabilities}. \url{https://api.jlcpcb.com/capabilities/Capabilities}. Consulta: 26 de octubre de 2026.
+\bibitem{txu0304} Texas Instruments. \emph{TXU0304}, SCES935A, noviembre de 2021. Configuración de pines y secciones 9.3 y 10. \url{https://www.ti.com/lit/ds/symlink/txu0304.pdf}.
+\bibitem{pca9306} Texas Instruments. \emph{PCA9306}, SCPS113O, septiembre de 2023. Polarización VREF2/EN y aplicación I2C. \url{https://www.ti.com/lit/ds/symlink/pca9306.pdf}.
+\bibitem{tps2553} Texas Instruments. \emph{TPS2552/TPS2553}, SLVS841F, agosto de 2016. Secciones 6, 7.3 y 10; tabla 2 de resistencia y límite de corriente. \url{https://www.ti.com/lit/ds/symlink/tps2553.pdf}.
+\bibitem{tpd6e05} Texas Instruments. \emph{TPDxE05U06}, SLVSBO7O, agosto de 2024. Tabla 4-3 y recomendaciones de layout. \url{https://www.ti.com/lit/ds/symlink/tpd6e05u06.pdf}.
+\bibitem{mic94073} Microchip. \emph{MIC94070/1/2/3 High-Side Power Switches}, DS20006896A, 2024. Pinout MT y características eléctricas. \url{https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MIC94070-1-2-3-High-Side-Power-Switches-DS20006896.pdf}.
+\bibitem{wurthusb} Würth Elektronik. \emph{692122030100 WR-COM USB 3.0 Horizontal SMT}, revisión 001.003, junio de 2025. \url{https://www.we-online.com/components/products/datasheet/692122030100.pdf}.
 \end{thebibliography}
 \end{document}
